@@ -1,0 +1,37 @@
+total 88
+drwxr-xr-x  29 root   root       678 2026-11-03 03:29 .
+drwxr-xr-x  29 root   root       678 2026-11-03 03:29 ..
+drwxr-xr-x   2 root   root        27 2026-11-03 02:44 acct
+drwxr-xr-x  57 root   root      1200 2026-11-09 13:27 apex
+lrw-r--r--   1 root   root        11 2026-11-03 02:44 bin -> /system/bin
+d?????????   ? ?      ?            ?                ? blackbox
+lrw-r--r--   1 root   root        50 2026-11-03 02:44 bugreports -> /data/user_de/0/com.android.shell/files/bugreports
+drwxrwx---   8 system cache     4096 1970-01-01 08:16 cache
+drwxr-xr-x   4 root   root         0 1970-01-01 08:00 config
+d?????????   ? ?      ?            ?                ? conquest
+lrw-r--r--   1 root   root        17 2026-11-03 02:44 d -> /sys/kernel/debug
+drwxrwx--x  57 system system    4096 2026-11-09 13:27 data
+d?????????   ? ?      ?            ?                ? data_mirror
+drwxr-xr-x   2 root   root        27 2026-11-03 02:44 debug_ramdisk
+drwxr-xr-x  23 root   root      4860 2026-11-11 11:19 dev
+lrw-r--r--   1 root   root        11 2026-11-03 02:44 etc -> /system/etc
+l?????????   ? ?      ?            ?                ? init -> ?
+-?????????   ? ?      ?            ?                ? init.environ.rc
+d?????????   ? ?      ?            ?                ? linkerconfig
+d?????????   ? ?      ?            ?                ? metadata
+drwxr-xr-x  15 root   system     340 2026-11-09 13:27 mnt
+drwxr-xr-x   9 root   root       140 2026-11-03 03:12 odm
+drwxr-xr-x   2 root   root        42 2026-11-03 02:44 odm_dlkm
+drwxr-xr-x   2 root   root        27 2026-11-03 02:44 oem
+d?????????   ? ?      ?            ?                ? postinstall
+dr-xr-xr-x 614 root   root         0 1970-01-01 08:00 proc
+drwxr-xr-x   8 root   root       130 2026-11-03 03:28 product
+lrw-r--r--   1 root   root        21 2026-11-03 02:44 sdcard -> /storage/self/primary
+drwxr-xr-x   2 root   root        27 2026-11-03 02:44 second_stage_resources
+drwx--x---   4 shell  everybody   80 2026-11-11 11:19 storage
+dr-xr-xr-x  27 root   root         0 1970-01-01 08:00 sys
+drwxr-xr-x  14 root   root       316 2026-11-03 03:16 system
+d?????????   ? ?      ?            ?                ? system_dlkm
+drwxr-xr-x   9 root   root       145 2026-11-03 02:21 system_ext
+drwxr-xr-x  13 root   shell      285 2026-11-03 03:22 vendor
+drwxr-xr-x   4 root   root        57 2026-11-03 02:44 vendor_dlkm

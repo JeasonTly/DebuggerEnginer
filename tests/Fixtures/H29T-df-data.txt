@@ -1,0 +1,2 @@
+Filesystem       1K-blocks    Used Available Use% Mounted on
+/dev/block/dm-39 235226112 3890016 231205024   2% /storage/emulated/0/Android/obb

@@ -1,0 +1,166 @@
+<UserControl x:Class="TestEngineer.Desktop.Views.CastPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Padding="16,12,16,10" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+      <DockPanel>
+        <StackPanel>
+          <TextBlock Text="远程投屏" FontSize="22" FontWeight="SemiBold" />
+          <TextBlock Text="右侧常驻画面 · 本页仅参数" Margin="0,4,0,0" FontSize="12"
+                     Foreground="{DynamicResource Brush.TextSecondary}" />
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom">
+          <Button Content="停止" Margin="0,0,8,0" Style="{StaticResource Button.Danger}"
+                  Command="{Binding DataContext.StopMirrorCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                  AutomationProperties.Name="停止投屏" />
+          <Button Content="启动 / 重连" Style="{StaticResource Button.Primary}"
+                  Command="{Binding DataContext.StartMirrorCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                  AutomationProperties.Name="启动或重连投屏" />
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <ScrollViewer Padding="16,12,16,16" VerticalScrollBarVisibility="Auto">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="12" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="12" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 画面 -->
+        <Border Grid.Row="0" Grid.Column="0" Padding="12"
+                Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8">
+          <StackPanel>
+            <TextBlock Text="画面" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"
+                       Foreground="{DynamicResource Brush.TextSecondary}" />
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="88" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+
+              <TextBlock Grid.Row="0" VerticalAlignment="Center" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Text="最大边" />
+              <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,6" Height="32"
+                       VerticalContentAlignment="Center" Padding="8,0"
+                       Text="{Binding MaxSize, UpdateSourceTrigger=PropertyChanged}"
+                       ToolTip="scrcpy --max-size；重启会话生效" />
+
+              <TextBlock Grid.Row="1" VerticalAlignment="Center" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Text="码率" />
+              <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,6">
+                <TextBlock DockPanel.Dock="Right" Margin="8,0,0,0" VerticalAlignment="Center"
+                           FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="Mbps" />
+                <TextBox Height="32" VerticalContentAlignment="Center" Padding="8,0"
+                         Text="{Binding BitRateMbps, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="内部以 bps 传给 scrcpy；重启会话生效" />
+              </DockPanel>
+
+              <TextBlock Grid.Row="2" VerticalAlignment="Center" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Text="帧率" />
+              <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,6" Height="32"
+                       VerticalContentAlignment="Center" Padding="8,0"
+                       Text="{Binding MaxFps, UpdateSourceTrigger=PropertyChanged}"
+                       ToolTip="scrcpy --max-fps；重启会话生效" />
+
+              <TextBlock Grid.Row="3" VerticalAlignment="Center" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Text="编码" />
+              <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" FontSize="12"
+                         Text="H.264 自动" />
+            </Grid>
+            <TextBlock Margin="0,8,0,0" FontSize="11"
+                       Foreground="{DynamicResource Brush.TextSecondary}"
+                       Text="重启会话生效" />
+          </StackPanel>
+        </Border>
+
+        <!-- 输入 -->
+        <Border Grid.Row="0" Grid.Column="2" Padding="12"
+                Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8">
+          <StackPanel>
+            <TextBlock Text="输入" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"
+                       Foreground="{DynamicResource Brush.TextSecondary}" />
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="88" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+
+              <TextBlock Grid.Row="0" VerticalAlignment="Center" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Text="触摸 / 键" />
+              <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,0,0,6" VerticalAlignment="Center"
+                         FontSize="12" Text="开" />
+
+              <TextBlock Grid.Row="1" VerticalAlignment="Center" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Text="拖拽 APK" />
+              <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,0,0,6" VerticalAlignment="Center"
+                         FontSize="12" Text="安装" />
+
+              <TextBlock Grid.Row="2" VerticalAlignment="Center" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Text="拖拽文件" />
+              <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" FontSize="12"
+                         FontFamily="Cascadia Mono, Consolas"
+                         Text="/sdcard/Download" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- 录制 -->
+        <Border Grid.Row="2" Grid.Column="0" Padding="12"
+                Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8">
+          <StackPanel>
+            <TextBlock Text="录制" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"
+                       Foreground="{DynamicResource Brush.TextSecondary}" />
+            <TextBlock FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap"
+                       Text="选择输出目录后开始" />
+            <TextBlock Margin="0,8,0,0" FontSize="11" FontFamily="Cascadia Mono, Consolas"
+                       Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap"
+                       Text="{Binding RecordDirectory}" />
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+              <Button Content="目录" Margin="0,0,8,0" Style="{StaticResource Button.Secondary}"
+                      Command="{Binding PickRecordDirectoryCommand}"
+                      AutomationProperties.Name="选择录屏目录" />
+              <Button Content="开始录屏" Style="{StaticResource Button.Primary}"
+                      Command="{Binding DataContext.StartMirrorRecordCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                      AutomationProperties.Name="开始录屏" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- 布局 -->
+        <Border Grid.Row="2" Grid.Column="2" Padding="12"
+                Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8">
+          <StackPanel>
+            <TextBlock Text="布局" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"
+                       Foreground="{DynamicResource Brush.TextSecondary}" />
+            <TextBlock FontSize="12" TextWrapping="Wrap"
+                       Text="分隔条改宽；换页不销毁会话。" />
+            <TextBlock Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource Brush.TextSecondary}"
+                       TextWrapping="Wrap" Text="{Binding Hint}" />
+          </StackPanel>
+        </Border>
+      </Grid>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

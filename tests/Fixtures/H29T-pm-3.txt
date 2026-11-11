@@ -1,0 +1,12 @@
+package:/system/preload/Vision_SoundRecorder/Vision_SoundRecorder.apk=com.android.soundrecorder
+package:/system/preload/Vision_DeskClock/Vision_DeskClock.apk=com.android.deskclock
+package:/data/app/~~QC35Q7xaU5hg7smW8l1xlw==/com.nawensoft.nsptt-uopr3qljI4sj48Cfcn8LAQ==/base.apk=com.nawensoft.nsptt
+package:/data/app/~~ftYgVh-X33aF1nacluSzBQ==/com.example.rfid-4Paqjap0fktT3bg5Ga0Bwg==/base.apk=com.example.rfid
+package:/system/preload/UCBrowser/UCBrowser.apk=com.UCMobile
+package:/system/preload/HxdIR2/HxdIR2.apk=it.song.remotestar.hxd
+package:/system/preload/HWAppStore/HWAppStore.apk=com.huawei.appmarket
+package:/system/preload/Vision_VideoPlayer/Vision_VideoPlayer.apk=com.android.hplayer
+package:/system/preload/Vision_Gallery/Vision_Gallery.apk=com.android.gallery3d
+package:/system/preload/Vision_Calendar/Vision_Calendar.apk=com.android.calendar
+package:/data/app/~~twdLq3Rh28xufrsWArqUUw==/com.litedo-N9QFBIyFJ6RQkCkymBfCWw==/base.apk=com.litedo
+package:/system/preload/Vision_MusicPlayer/Vision_MusicPlayer.apk=com.hmct.music

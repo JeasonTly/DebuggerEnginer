@@ -1,0 +1,14 @@
+total 39
+drwxrws--- 2 u0_a112  media_rw 3452 2026-11-09 18:29 Alarms
+drwxrws--x 5 media_rw media_rw 3452 2026-11-09 18:29 Android
+drwxrws--- 2 u0_a112  media_rw 3452 2026-11-09 18:29 Audiobooks
+drwxrws--- 2 u0_a112  media_rw 3452 2026-11-09 18:29 DCIM
+drwxrws--- 2 u0_a112  media_rw 3452 2026-11-09 18:29 Documents
+drwxrws--- 2 u0_a112  media_rw 3452 2026-11-09 18:29 Download
+drwxrws--- 3 u0_a112  media_rw 3452 2026-11-09 18:29 Movies
+drwxrws--- 3 u0_a112  media_rw 3452 2026-11-09 18:29 Music
+drwxrws--- 2 u0_a112  media_rw 3452 2026-11-09 18:29 Notifications
+drwxrws--- 3 u0_a112  media_rw 3452 2026-11-09 18:29 Pictures
+drwxrws--- 2 u0_a112  media_rw 3452 2026-11-09 18:29 Podcasts
+drwxrws--- 2 u0_a112  media_rw 3452 2026-11-09 18:29 Recordings
+drwxrws--- 2 u0_a112  media_rw 3452 2026-11-09 18:29 Ringtones

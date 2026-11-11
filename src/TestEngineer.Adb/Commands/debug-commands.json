@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "commands": [
+    {
+      "id": "top-activity",
+      "category": "诊断查询",
+      "title": "栈顶 Activity",
+      "args": ["shell", "dumpsys", "activity", "activities"],
+      "timeoutSeconds": 30
+    },
+    {
+      "id": "list-users",
+      "category": "诊断查询",
+      "title": "列出用户账户",
+      "args": ["shell", "pm", "list", "users"],
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "focused-window",
+      "category": "诊断查询",
+      "title": "焦点窗口",
+      "args": ["shell", "dumpsys", "window", "windows"],
+      "timeoutSeconds": 30
+    },
+    {
+      "id": "screencap",
+      "category": "诊断查询",
+      "title": "截屏到本机",
+      "kind": "screencap",
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "oem-engineer-mode",
+      "category": "日志入口",
+      "title": "打开 EngineerMode",
+      "args": ["shell", "am", "start", "-n", "com.sprd.engineermode/.EngineerModeActivity"],
+      "whenPackageExists": "com.sprd.engineermode",
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "oem-hisense-factory-log",
+      "category": "日志入口",
+      "title": "打开 Hisense 工厂日志上传",
+      "args": ["shell", "monkey", "-p", "com.hmct.factorylogupload", "-c", "android.intent.category.LAUNCHER", "1"],
+      "whenPackageExists": "com.hmct.factorylogupload",
+      "timeoutSeconds": 20
+    },
+    {
+      "id": "export-logs",
+      "category": "日志入口",
+      "title": "导出 logcat 并压缩",
+      "kind": "export-logs",
+      "timeoutSeconds": 180
+    },
+    {
+      "id": "bugreport",
+      "category": "日志入口",
+      "title": "导出 bugreport",
+      "kind": "bugreport",
+      "timeoutSeconds": 900
+    },
+    {
+      "id": "airplane-on",
+      "category": "Settings",
+      "title": "打开飞行模式",
+      "args": ["shell", "cmd", "connectivity", "airplane-mode", "enable"],
+      "dangerous": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "airplane-off",
+      "category": "Settings",
+      "title": "关闭飞行模式",
+      "args": ["shell", "cmd", "connectivity", "airplane-mode", "disable"],
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "wifi-on",
+      "category": "Settings",
+      "title": "打开 Wi‑Fi",
+      "args": ["shell", "svc", "wifi", "enable"],
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "wifi-off",
+      "category": "Settings",
+      "title": "关闭 Wi‑Fi",
+      "args": ["shell", "svc", "wifi", "disable"],
+      "dangerous": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "bt-on",
+      "category": "Settings",
+      "title": "打开蓝牙",
+      "args": ["shell", "svc", "bluetooth", "enable"],
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "bt-off",
+      "category": "Settings",
+      "title": "关闭蓝牙",
+      "args": ["shell", "svc", "bluetooth", "disable"],
+      "dangerous": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "open-display-settings",
+      "category": "Settings",
+      "title": "打开显示设置",
+      "args": ["shell", "am", "start", "-a", "android.settings.DISPLAY_SETTINGS"],
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "monkey-app",
+      "category": "Monkey",
+      "title": "应用 Monkey（按时长）",
+      "kind": "monkey-app",
+      "dangerous": true,
+      "timeoutSeconds": 3600
+    },
+    {
+      "id": "monkey-system",
+      "category": "Monkey",
+      "title": "系统 Monkey（按时长）",
+      "kind": "monkey-system",
+      "dangerous": true,
+      "timeoutSeconds": 3600
+    },
+    {
+      "id": "am-force-stop",
+      "category": "am·pm",
+      "title": "强制停止包名",
+      "kind": "am-force-stop",
+      "timeoutSeconds": 20
+    },
+    {
+      "id": "pm-path",
+      "category": "am·pm",
+      "title": "查询 APK 路径",
+      "kind": "pm-path",
+      "timeoutSeconds": 15
+    }
+  ],
+  "consoleChips": [
+    { "id": "selinux-off", "title": "关闭 SELinux", "line": "shell setenforce 0", "requiresRoot": true, "dangerous": true },
+    { "id": "selinux-get", "title": "查看 SELinux", "line": "shell getenforce", "requiresRoot": false },
+    { "id": "selinux-on", "title": "恢复 SELinux", "line": "shell setenforce 1", "requiresRoot": true, "dangerous": true },
+    { "id": "logcat-keyword", "title": "logcat 关键字", "kind": "logcat-filter" },
+    { "id": "logcat-error", "title": "logcat *:E", "line": "logcat *:E" },
+    { "id": "logcat-clear", "title": "logcat -c", "line": "logcat -c" },
+    { "id": "adb-root", "title": "adb root", "line": "root", "requiresUserdebug": true, "dangerous": true },
+    { "id": "adb-remount", "title": "adb remount", "line": "remount", "requiresUserdebug": true, "dangerous": true },
+    { "id": "avbctl", "title": "avbctl disable-verification", "line": "shell avbctl disable-verification", "requiresRoot": true, "dangerous": true }
+  ]
+}

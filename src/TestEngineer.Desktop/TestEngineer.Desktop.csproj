@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>TestEngineer.Desktop</RootNamespace>
+    <AssemblyName>TestEngineer</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="11.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="11.0.0" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TestEngineer.UI\TestEngineer.UI.csproj" />
+    <ProjectReference Include="..\TestEngineer.Core\TestEngineer.Core.csproj" />
+    <ProjectReference Include="..\TestEngineer.Infrastructure\TestEngineer.Infrastructure.csproj" />
+    <ProjectReference Include="..\TestEngineer.Adb\TestEngineer.Adb.csproj" />
+    <ProjectReference Include="..\TestEngineer.Mirror\TestEngineer.Mirror.csproj" />
+  </ItemGroup>
+
+  <!-- 随包工具：从仓库 tools/third-party 复制到输出目录，便于 ToolLocator 向上查找 -->
+  <ItemGroup>
+    <Content Include="..\..\tools\third-party\platform-tools\**\*"
+             Link="tools\third-party\platform-tools\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest"
+             Condition="Exists('..\..\tools\third-party\platform-tools\adb.exe')" />
+    <Content Include="..\..\tools\third-party\scrcpy-win64-v3.3.3\scrcpy-win64-v3.3.3\**\*"
+             Link="tools\third-party\scrcpy-win64-v3.3.3\scrcpy-win64-v3.3.3\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest"
+             Condition="Exists('..\..\tools\third-party\scrcpy-win64-v3.3.3\scrcpy-win64-v3.3.3\scrcpy.exe')" />
+    <Content Include="..\..\tools\device-helper\device-helper.jar"
+             Link="tools\device-helper\device-helper.jar"
+             CopyToOutputDirectory="PreserveNewest"
+             Condition="Exists('..\..\tools\device-helper\device-helper.jar')" />
+  </ItemGroup>
+
+</Project>

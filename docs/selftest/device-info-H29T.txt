@@ -1,0 +1,29 @@
+TestEngineer DeviceInfoService 真机自测
+时间: 2026-11-11 20:51:25+08:00
+adb: E:\CCode\TestEngineer\tools\third-party\platform-tools\adb.exe (Bundled)
+设备列表: 99990000888800[device] model=H29T transport_id=1; KKSTBE045026[device] model=DSJ_TOPX1A1 transport_id=2
+
+序列号           : 99990000888800
+厂商            : H29T
+品牌            : H29T
+型号            : H29T
+Android 版本    : 13 (SDK 33)
+构建类型          : user
+Build ID      : TP1A.220624.014 dev-keys
+ro.debuggable : False
+安全补丁          : 2023-08-05
+内核            : 5.4.210
+基带            : 5G_MODEM_V2_23A_W24.02.3|ums9620_modem
+电量            : 91% 充电中 USB 30.6°C 4194mV
+存储 /data      : 总 224.33 GB / 已用 3.73 GB / 可用 220.48 GB
+内存            : 总 8.00 GB / 可用 5.16 GB
+CPU           : Unisoc T760 x8 arm64-v8a
+分辨率           : 720x1440
+密度            : 320
+网络类型          : 无连接
+Wi-Fi SSID    : -
+Wi-Fi MAC     : d4:f9:21:6d:66:4e
+IP            : -
+开机时长          : 2.01:41:55
+
+警告: 无

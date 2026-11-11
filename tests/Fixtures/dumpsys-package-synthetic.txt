@@ -1,0 +1,19 @@
+Packages:
+  Package [com.example.demo] (abc123):
+    userId=10150
+    versionCode=42 minSdk=24 targetSdk=33
+    versionName=1.2.3
+    flags=[ DEBUGGABLE HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    firstInstallTime=2026-11-09 13:32:22
+    lastUpdateTime=2026-11-10 08:00:01
+    requested permissions:
+      android.permission.INTERNET
+      android.permission.CAMERA
+      android.permission.ACCESS_FINE_LOCATION: restricted=false
+      com.example.demo.permission.PRIVATE
+    install permissions:
+      android.permission.INTERNET: granted=true
+    User 0: ceDataInode=1234 installed=true hidden=false
+      runtime permissions:
+        android.permission.CAMERA: granted=true, flags=[ USER_SET ]
+        android.permission.ACCESS_FINE_LOCATION: granted=false, flags=[ USER_SET ]

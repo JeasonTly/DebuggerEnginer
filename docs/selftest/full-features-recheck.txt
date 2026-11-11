@@ -1,0 +1,3 @@
+﻿- 99990000888800 window focus recheck: PASS `mCurrentFocus=Window{d4689f4 u0 com.android.settings/com.android.settings.Settings$ManageExternalStorageActivity}-[Surface(name=*Title#1389)/@0x356e163]`
+- KKSTBE045026 window focus recheck: PASS `mCurrentFocus=Window{cb3c574 u0 com.android.settings/com.android.settings.Settings$ManageExternalStorageActivity}-[Surface(name=*Title#243)/@0x601c4e0]`
+- 99990000888800 bugreport recheck: FAIL size=0 exit=-1

@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="src/TestEngineer.Adb/TestEngineer.Adb.csproj" />
+  <Project Path="src/TestEngineer.Core/TestEngineer.Core.csproj" />
+  <Project Path="src/TestEngineer.Desktop/TestEngineer.Desktop.csproj" />
+  <Project Path="src/TestEngineer.Infrastructure/TestEngineer.Infrastructure.csproj" />
+  <Project Path="src/TestEngineer.Mirror/TestEngineer.Mirror.csproj" />
+  <Project Path="src/TestEngineer.UI/TestEngineer.UI.csproj" />
+  <Project Path="tests/TestEngineer.Adb.Tests/TestEngineer.Adb.Tests.csproj" />
+  <Project Path="tests/TestEngineer.Core.Tests/TestEngineer.Core.Tests.csproj" />
+</Solution>

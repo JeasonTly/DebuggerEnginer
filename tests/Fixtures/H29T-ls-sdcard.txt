@@ -1,0 +1,20 @@
+total 57
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-03 03:17 Alarms
+drwxrws--x 5 media_rw media_rw 3452 2026-11-03 03:17 Android
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-03 03:17 Audiobooks
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-03 03:17 Core
+drwxrws--- 3 u0_a100  media_rw 3452 2026-11-03 03:46 DCIM
+drwxrws--- 4 u0_a100  media_rw 3452 2026-11-03 03:17 Dlscan
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-03 03:17 Documents
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-03 03:17 Download
+drwxrws--- 3 u0_a100  media_rw 3452 2026-11-09 13:32 LiteDo
+drwxrws--- 3 u0_a100  media_rw 3452 2026-11-03 03:17 Movies
+drwxrws--- 3 u0_a100  media_rw 3452 2026-11-03 03:17 Music
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-03 03:17 Notifications
+drwxrws--- 3 u0_a100  media_rw 3452 2026-11-03 03:17 Pictures
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-03 03:17 Podcasts
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-03 03:17 Recordings
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-03 03:17 Ringtones
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-07 09:15 TalkieAudio
+drwxrws--- 3 u0_a100  media_rw 3452 2026-11-03 03:46 system
+drwxrws--- 2 u0_a100  media_rw 3452 2026-11-03 03:46 相机

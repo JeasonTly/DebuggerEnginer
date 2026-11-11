@@ -1,0 +1,1 @@
+mWifiInfo SSID: "Office-5G", BSSID: aa:bb:cc:dd:ee:ff, MAC: 5e:12:34:56:78:9a, IP: /192.168.1.23, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 5, RSSI: -52, Link speed: 866Mbps

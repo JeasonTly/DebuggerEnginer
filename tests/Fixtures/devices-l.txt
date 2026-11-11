@@ -1,0 +1,4 @@
+List of devices attached
+99990000888800         device product:H29T model:H29T device:H29T transport_id:1
+KKSTBE045026           device product:HIS60A1 model:DSJ_TOPX1A1 device:HIS60A1 transport_id:2
+

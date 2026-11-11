@@ -1,0 +1,7 @@
+* daemon not running; starting now at tcp:5037
+* daemon started successfully
+List of devices attached
+emulator-5554          device product:sdk_gphone64_x86_64 model:sdk_gphone64_x86_64 device:emu64xa transport_id:3
+0123456789ABCDEF       unauthorized usb:1-4 transport_id:4
+192.168.1.20:5555      offline product:foo model:Foo_Bar device:foo transport_id:5
+ZY22XXXX               no permissions (user in plugdev group; are your udev rules wrong?); see [http://developer.android.com/tools/device.html] usb:1-2 transport_id:6

@@ -1,0 +1,1 @@
+mWifiInfo SSID: <unknown ssid>, BSSID: <none>, MAC: 02:00:00:00:00:00, IP: null, Security type: -1, Supplicant state: DISCONNECTED, Wi-Fi standard: 5, RSSI: -127, Link speed: -1Mbps

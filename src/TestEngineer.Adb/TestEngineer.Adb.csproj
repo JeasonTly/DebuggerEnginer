@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TestEngineer.Core\TestEngineer.Core.csproj" />
+    <ProjectReference Include="..\TestEngineer.Infrastructure\TestEngineer.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="11.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Commands\debug-commands.json" CopyToOutputDirectory="PreserveNewest" Link="Commands\debug-commands.json" />
+  </ItemGroup>
+
+</Project>

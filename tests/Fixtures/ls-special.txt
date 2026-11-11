@@ -1,0 +1,14 @@
+total 120
+drwxrws---  2 u0_a100 media_rw      3452 2026-11-03 03:46 相机
+drwxrws---  2 u0_a100 media_rw      3452 2026-11-03 03:46 My Documents
+-rw-rw----  1 u0_a100 media_rw   1048576 2026-11-09 13:32 测试 报告 final v2.pdf
+-rw-rw----  1 u0_a100 media_rw         0 2026-11-09 13:32 a -> b.txt
+lrw-r--r--  1 root    root          21 2026-11-03 02:44 sdcard -> /storage/self/primary
+lrw-r--r--  1 root    root          11 2026-11-03 02:44 my link -> /system/bin
+crw-rw-rw-  1 root    root       1,   3 2026-11-03 02:44 null
+d?????????  ? ?       ?            ?                ? blackbox
+-?????????  ? ?       ?            ?                ? init.environ.rc
+l?????????  ? ?       ?            ?                ? init -> ?
+drwxr-xr-x  2 root    root        27 2026-11-03 02:44 .
+drwxr-xr-x  2 root    root        27 2026-11-03 02:44 ..
+ls: /sdcard/secret: Permission denied

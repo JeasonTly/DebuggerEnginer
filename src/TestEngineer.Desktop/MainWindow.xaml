@@ -1,0 +1,290 @@
+﻿<Window x:Class="TestEngineer.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:TestEngineer.Desktop.ViewModels"
+        xmlns:views="clr-namespace:TestEngineer.Desktop.Views"
+        xmlns:conv="clr-namespace:TestEngineer.Desktop.Converters"
+        xmlns:ctrl="clr-namespace:TestEngineer.Desktop.Controls"
+        Title="TestEngineer"
+        Width="1280" Height="800"
+        MinWidth="1100" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Brush.Background}"
+        Foreground="{DynamicResource Brush.Text}"
+        FontFamily="Segoe UI, Microsoft YaHei UI"
+        FontSize="14">
+  <Window.Resources>
+    <conv:NavWidthConverter x:Key="NavWidthConverter" />
+    <conv:NavToggleTextConverter x:Key="NavToggleTextConverter" />
+    <conv:NavLabelVisibilityConverter x:Key="NavLabelVisibility" />
+    <conv:PageActiveConverter x:Key="PageActive" />
+    <!-- 导航项：整行、圆角 6、最小高 36；图标列 20 宽距左缘 10（展开/折叠一致，左对齐）。 -->
+    <Style x:Key="NavItemStyle" TargetType="Button">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="MinHeight" Value="36" />
+      <Setter Property="Margin" Value="0,1" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6"
+                    BorderBrush="Transparent" BorderThickness="2"
+                    Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+              <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" />
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="{DynamicResource Brush.Raised}" />
+          <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+        </Trigger>
+        <Trigger Property="Selector.IsSelected" Value="True">
+          <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+          <Setter Property="Foreground" Value="{DynamicResource Brush.AccentText}" />
+        </Trigger>
+        <Trigger Property="IsKeyboardFocused" Value="True">
+          <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="NavLabel" TargetType="TextBlock">
+      <Setter Property="Margin" Value="8,0,0,0" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+      <Setter Property="Visibility" Value="{Binding DataContext.NavCollapsed, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource NavLabelVisibility}}" />
+    </Style>
+    <Style x:Key="NavToggleIcon" TargetType="ContentControl" BasedOn="{StaticResource Icon.Glyph}">
+      <Setter Property="Content" Value="{StaticResource Icon.Nav.Collapse}" />
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding DataContext.NavCollapsed, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+          <Setter Property="Content" Value="{StaticResource Icon.Nav.Expand}" />
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+    <DataTemplate DataType="{x:Type vm:DevicePageViewModel}">
+      <views:DevicePage />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:AppsPageViewModel}">
+      <views:AppsPage />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:FilesPageViewModel}">
+      <views:FilesPage />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:DebugPageViewModel}">
+      <views:DebugPage />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ConsolePageViewModel}">
+      <views:ConsolePage />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:CastPageViewModel}">
+      <views:CastPage />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:AboutPageViewModel}">
+      <views:AboutPage />
+    </DataTemplate>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="40" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="28" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+      <DockPanel Margin="12,0">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Border Width="18" Height="18" CornerRadius="4" Background="{DynamicResource Brush.Accent}" Margin="0,0,8,0" />
+          <TextBlock Text="TestEngineer" FontWeight="SemiBold" VerticalAlignment="Center" />
+          <Border Margin="16,0,0,0" Padding="8,2" CornerRadius="999"
+                  Background="{DynamicResource Brush.Raised}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+            <StackPanel Orientation="Horizontal">
+              <Ellipse Width="7" Height="7" Margin="0,0,8,0" Fill="{DynamicResource Brush.Accent}" VerticalAlignment="Center" />
+              <ComboBox ItemsSource="{Binding Devices}"
+                        SelectedItem="{Binding SelectedDevice}"
+                        DisplayMemberPath="DisplayName"
+                        MinWidth="240" BorderThickness="0" Background="Transparent" />
+              <Button Margin="6,0,0,0" Style="{StaticResource Button.Icon}" Width="28" Height="28"
+                      ToolTip="刷新设备" AutomationProperties.Name="刷新设备"
+                      Command="{Binding RefreshDevicesCommand}">
+                <ContentControl Style="{StaticResource Icon.Glyph}" Width="14" Height="14"
+                                Content="{StaticResource Icon.Device.Refresh}" />
+              </Button>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" MinWidth="300" />
+        <ColumnDefinition Width="5" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+
+      <Border Grid.Column="0" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,1,0"
+              Width="{Binding NavCollapsed, Converter={StaticResource NavWidthConverter}}">
+        <DockPanel Margin="8">
+          <Button DockPanel.Dock="Top" Style="{StaticResource NavItemStyle}" Margin="0,0,0,4" MinHeight="32"
+                  Command="{Binding ToggleNavCommand}"
+                  ToolTip="{Binding NavCollapsed, Converter={StaticResource NavToggleTextConverter}}"
+                  AutomationProperties.Name="{Binding NavCollapsed, Converter={StaticResource NavToggleTextConverter}}">
+            <StackPanel Orientation="Horizontal">
+              <ContentControl Style="{StaticResource NavToggleIcon}" />
+              <TextBlock Style="{StaticResource NavLabel}" Text="{Binding NavCollapsed, Converter={StaticResource NavToggleTextConverter}}" />
+            </StackPanel>
+          </Button>
+          <Button DockPanel.Dock="Bottom" Style="{StaticResource NavItemStyle}" ToolTip="关于" AutomationProperties.Name="关于"
+                  Command="{Binding NavigateCommand}" CommandParameter="About"
+                  Selector.IsSelected="{Binding CurrentPageViewModel, Converter={StaticResource PageActive}, ConverterParameter=About, Mode=OneWay}">
+            <StackPanel Orientation="Horizontal">
+              <ContentControl Style="{StaticResource Icon.Glyph}" Content="{StaticResource Icon.Nav.About}" />
+              <TextBlock Style="{StaticResource NavLabel}" Text="关于" />
+            </StackPanel>
+          </Button>
+          <StackPanel>
+            <Button Style="{StaticResource NavItemStyle}" ToolTip="设备信息" AutomationProperties.Name="设备信息"
+                    Command="{Binding NavigateCommand}" CommandParameter="Device"
+                    Selector.IsSelected="{Binding CurrentPageViewModel, Converter={StaticResource PageActive}, ConverterParameter=Device, Mode=OneWay}">
+              <StackPanel Orientation="Horizontal">
+                <ContentControl Style="{StaticResource Icon.Glyph}" Content="{StaticResource Icon.Nav.Device}" />
+                <TextBlock Style="{StaticResource NavLabel}" Text="设备信息" />
+              </StackPanel>
+            </Button>
+            <Button Style="{StaticResource NavItemStyle}" ToolTip="应用管理" AutomationProperties.Name="应用管理"
+                    Command="{Binding NavigateCommand}" CommandParameter="Apps"
+                    Selector.IsSelected="{Binding CurrentPageViewModel, Converter={StaticResource PageActive}, ConverterParameter=Apps, Mode=OneWay}">
+              <StackPanel Orientation="Horizontal">
+                <ContentControl Style="{StaticResource Icon.Glyph}" Content="{StaticResource Icon.Nav.Apps}" />
+                <TextBlock Style="{StaticResource NavLabel}" Text="应用管理" />
+              </StackPanel>
+            </Button>
+            <Button Style="{StaticResource NavItemStyle}" ToolTip="文件管理" AutomationProperties.Name="文件管理"
+                    Command="{Binding NavigateCommand}" CommandParameter="Files"
+                    Selector.IsSelected="{Binding CurrentPageViewModel, Converter={StaticResource PageActive}, ConverterParameter=Files, Mode=OneWay}">
+              <StackPanel Orientation="Horizontal">
+                <ContentControl Style="{StaticResource Icon.Glyph}" Content="{StaticResource Icon.Nav.Files}" />
+                <TextBlock Style="{StaticResource NavLabel}" Text="文件管理" />
+              </StackPanel>
+            </Button>
+            <Button Style="{StaticResource NavItemStyle}" ToolTip="调试指令" AutomationProperties.Name="调试指令"
+                    Command="{Binding NavigateCommand}" CommandParameter="Debug"
+                    Selector.IsSelected="{Binding CurrentPageViewModel, Converter={StaticResource PageActive}, ConverterParameter=Debug, Mode=OneWay}">
+              <StackPanel Orientation="Horizontal">
+                <ContentControl Style="{StaticResource Icon.Glyph}" Content="{StaticResource Icon.Nav.Debug}" />
+                <TextBlock Style="{StaticResource NavLabel}" Text="调试指令" />
+              </StackPanel>
+            </Button>
+            <Button Style="{StaticResource NavItemStyle}" ToolTip="控制台" AutomationProperties.Name="控制台"
+                    Command="{Binding NavigateCommand}" CommandParameter="Console"
+                    Selector.IsSelected="{Binding CurrentPageViewModel, Converter={StaticResource PageActive}, ConverterParameter=Console, Mode=OneWay}">
+              <StackPanel Orientation="Horizontal">
+                <ContentControl Style="{StaticResource Icon.Glyph}" Content="{StaticResource Icon.Nav.Console}" />
+                <TextBlock Style="{StaticResource NavLabel}" Text="控制台" />
+              </StackPanel>
+            </Button>
+            <Button Style="{StaticResource NavItemStyle}" ToolTip="远程投屏" AutomationProperties.Name="远程投屏"
+                    Command="{Binding NavigateCommand}" CommandParameter="Cast"
+                    Selector.IsSelected="{Binding CurrentPageViewModel, Converter={StaticResource PageActive}, ConverterParameter=Cast, Mode=OneWay}">
+              <StackPanel Orientation="Horizontal">
+                <ContentControl Style="{StaticResource Icon.Glyph}" Content="{StaticResource Icon.Nav.Cast}" />
+                <TextBlock Style="{StaticResource NavLabel}" Text="远程投屏" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </DockPanel>
+      </Border>
+
+      <Grid Grid.Column="1" Background="{DynamicResource Brush.Background}">
+        <ContentControl Content="{Binding CurrentPageViewModel}" />
+      </Grid>
+
+      <GridSplitter Grid.Column="2" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource Brush.Border}"
+                    ResizeBehavior="PreviousAndNext" />
+
+      <Border Grid.Column="3" Width="{Binding MirrorWidth}" MinWidth="240" MaxWidth="520"
+              Background="{DynamicResource Brush.MirrorStage}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1,0,0,0">
+        <DockPanel>
+          <Border DockPanel.Dock="Top" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1" Padding="8">
+            <StackPanel>
+              <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                  <Button Margin="0,0,6,0" Style="{StaticResource Button.Primary}" Command="{Binding StartMirrorCommand}"
+                          ToolTip="启动投屏" AutomationProperties.Name="启动投屏">
+                    <StackPanel Orientation="Horizontal">
+                      <ContentControl Style="{StaticResource Icon.Glyph}" Width="14" Height="14" Margin="0,0,6,0"
+                                      Content="{StaticResource Icon.Mirror.Play}" />
+                      <TextBlock Text="启动" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                  <Button Margin="0,0,8,0" Style="{StaticResource Button.Secondary}" Command="{Binding StopMirrorCommand}"
+                          ToolTip="停止投屏" AutomationProperties.Name="停止投屏">
+                    <StackPanel Orientation="Horizontal">
+                      <ContentControl Style="{StaticResource Icon.Glyph}" Width="14" Height="14" Margin="0,0,6,0"
+                                      Content="{StaticResource Icon.Mirror.Stop}" />
+                      <TextBlock Text="停止" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+                <TextBlock Text="{Binding MirrorStatus}" VerticalAlignment="Center" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Brush.TextSecondary}" FontSize="11" />
+              </DockPanel>
+              <UniformGrid Columns="6" Margin="0,8,0,0">
+                <Button Style="{StaticResource Button.Icon}" Margin="0,0,4,0" ToolTip="返回" AutomationProperties.Name="返回"
+                        Command="{Binding SendKeyCommand}" CommandParameter="KEYCODE_BACK">
+                  <ContentControl Style="{StaticResource Icon.Glyph}" Width="16" Height="16" Content="{StaticResource Icon.Mirror.Back}" />
+                </Button>
+                <Button Style="{StaticResource Button.Icon}" Margin="0,0,4,0" ToolTip="Home" AutomationProperties.Name="Home"
+                        Command="{Binding SendKeyCommand}" CommandParameter="KEYCODE_HOME">
+                  <ContentControl Style="{StaticResource Icon.Glyph}" Width="16" Height="16" Content="{StaticResource Icon.Mirror.Home}" />
+                </Button>
+                <Button Style="{StaticResource Button.Icon}" Margin="0,0,4,0" ToolTip="多任务" AutomationProperties.Name="多任务"
+                        Command="{Binding SendKeyCommand}" CommandParameter="KEYCODE_APP_SWITCH">
+                  <ContentControl Style="{StaticResource Icon.Glyph}" Width="16" Height="16" Content="{StaticResource Icon.Mirror.Recent}" />
+                </Button>
+                <Button Style="{StaticResource Button.Icon}" Margin="0,0,4,0" ToolTip="电源" AutomationProperties.Name="电源"
+                        Command="{Binding SendKeyCommand}" CommandParameter="KEYCODE_POWER">
+                  <ContentControl Style="{StaticResource Icon.Glyph}" Width="16" Height="16" Content="{StaticResource Icon.Mirror.Power}" />
+                </Button>
+                <Button Style="{StaticResource Button.Icon}" Margin="0,0,4,0" ToolTip="截屏" AutomationProperties.Name="截屏"
+                        Command="{Binding ScreenshotCommand}">
+                  <ContentControl Style="{StaticResource Icon.Glyph}" Width="16" Height="16" Content="{StaticResource Icon.Mirror.Screenshot}" />
+                </Button>
+                <Button Style="{StaticResource Button.Icon}" ToolTip="启动并录屏" AutomationProperties.Name="启动并录屏"
+                        Command="{Binding StartMirrorRecordCommand}">
+                  <ContentControl Style="{StaticResource Icon.Glyph}" Width="16" Height="16" Content="{StaticResource Icon.Mirror.Record}" />
+                </Button>
+              </UniformGrid>
+            </StackPanel>
+          </Border>
+          <Border Margin="8" Background="{DynamicResource Brush.MirrorStage}" CornerRadius="6" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" ClipToBounds="True">
+            <Grid>
+              <TextBlock x:Name="MirrorPlaceholder"
+                         Text="右侧常驻投屏区&#x0a;点击「启动投屏」嵌入 scrcpy"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         TextAlignment="Center" Foreground="{DynamicResource Brush.TextSecondary}" />
+              <ctrl:ScrcpyHwndHost x:Name="MirrorHost" />
+            </Grid>
+          </Border>
+        </DockPanel>
+      </Border>
+    </Grid>
+
+    <Border Grid.Row="2" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0">
+      <TextBlock Margin="12,0" VerticalAlignment="Center" FontSize="11"
+                 Foreground="{DynamicResource Brush.TextSecondary}" Text="{Binding StatusText}" />
+    </Border>
+  </Grid>
+</Window>
