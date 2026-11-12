@@ -30,7 +30,8 @@ public sealed record DebugCommandDefinition(
     bool IsDangerous = false,
     TimeSpan? Timeout = null,
     string? Kind = null,
-    string? WhenPackageExists = null)
+    string? WhenPackageExists = null,
+    bool SilentResult = false)
 {
     public IReadOnlyList<DebugCommandParameter> ParameterList => Parameters ?? [];
 }

@@ -7,6 +7,7 @@ using TestEngineer.Core.Abstractions;
 using TestEngineer.Core.Settings;
 using TestEngineer.Desktop.Services;
 using TestEngineer.Desktop.ViewModels;
+using TestEngineer.Infrastructure.Gnss;
 using TestEngineer.Infrastructure.History;
 using TestEngineer.Infrastructure.Paths;
 using TestEngineer.Infrastructure.Settings;
@@ -41,21 +42,39 @@ public partial class App : Application
         DispatcherUnhandledException += (_, args) =>
         {
             _host.Services.GetRequiredService<ILogger<App>>().LogError(args.Exception, "未处理的 UI 线程异常");
-            MessageBox.Show(args.Exception.Message, "TestEngineer", MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
+            if (IsAutomationElementGap(args.Exception))
+            {
+                return;
+            }
+
+            MessageBox.Show(args.Exception.Message, "TestEngineer", MessageBoxButton.OK, MessageBoxImage.Error);
         };
 
         var appSettings = _host.Services.GetRequiredService<IAppSettings>();
         _host.Services.GetRequiredService<IThemeService>().Apply(ResolveTheme(appSettings.Current.Theme));
 
-        await _host.Services.GetRequiredService<IDeviceContext>().StartAsync();
-
         var window = _host.Services.GetRequiredService<MainWindow>();
         MainWindow = window;
         window.Show();
+
+        // 设备枚举会拉起 adb，不能挡在窗口出现之前。
+        _ = StartDevicesAsync();
     }
 
-    protected override async void OnExit(ExitEventArgs e)
+    private async Task StartDevicesAsync()
+    {
+        try
+        {
+            await _host!.Services.GetRequiredService<IDeviceContext>().StartAsync().ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            _host!.Services.GetRequiredService<ILogger<App>>().LogWarning(ex, "启动时枚举设备失败");
+        }
+    }
+
+    protected override void OnExit(ExitEventArgs e)
     {
         if (_host is not null)
         {
@@ -70,19 +89,53 @@ public partial class App : Application
 
             try
             {
-                var mirror = _host.Services.GetService<IMirrorSession>();
-                if (mirror is not null)
-                {
-                    await mirror.DisposeAsync();
-                }
+                // 关窗口时已经优雅停过。这里再扫一遍，避免异步退出没跑完就留下 scrcpy。
+                _host.Services.GetService<IMirrorSession>()?.ForceStop();
             }
-            catch { /* ignore */ }
+            catch (Exception ex)
+            {
+                _host.Services.GetRequiredService<ILogger<App>>().LogWarning(ex, "退出时结束投屏失败");
+            }
 
-            await _host.StopAsync();
+            try
+            {
+                _host.StopAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                _host.Services.GetRequiredService<ILogger<App>>().LogWarning(ex, "退出时停止主机失败");
+            }
+
             _host.Dispose();
         }
 
         base.OnExit(e);
+    }
+
+    /// <summary>
+    /// 辅助功能遍历碰到已卸下的元素时，WPF 会在 UI 线程抛出 Parameter 'el'。
+    /// 这不是指令失败，弹模态框会把整个窗口卡住。
+    /// </summary>
+    private static bool IsAutomationElementGap(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is not ArgumentNullException { ParamName: "el" })
+            {
+                continue;
+            }
+
+            var site = current.TargetSite?.DeclaringType?.FullName ?? string.Empty;
+            var stack = current.StackTrace ?? string.Empty;
+            if (site.Contains("ElementUtil", StringComparison.Ordinal)
+                || stack.Contains("ElementUtil", StringComparison.Ordinal)
+                || stack.Contains("Automation", StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static AppThemeMode ResolveTheme(AppThemeMode mode)
@@ -145,6 +198,9 @@ public partial class App : Application
                 sp.GetRequiredService<IConsoleHistory>()));
         services.AddSingleton<IMirrorSession, ScrcpyMirrorSession>();
 
+        services.AddSingleton<INmeaLogAnalyzer, NmeaLogAnalyzer>();
+        services.AddSingleton<IKmlTrackWriter, KmlTrackWriter>();
+
         services.AddSingleton<IThemeService, ThemeService>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<DevicePageViewModel>();
@@ -153,6 +209,8 @@ public partial class App : Application
         services.AddSingleton<DebugPageViewModel>();
         services.AddSingleton<ConsolePageViewModel>();
         services.AddSingleton<CastPageViewModel>();
+        services.AddSingleton<DeveloperPageViewModel>();
+        services.AddSingleton<NmeaPageViewModel>();
         services.AddSingleton<AboutPageViewModel>();
         services.AddSingleton<MainWindow>();
 

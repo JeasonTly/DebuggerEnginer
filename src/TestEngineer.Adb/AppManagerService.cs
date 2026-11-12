@@ -27,37 +27,128 @@ public sealed partial class AppManagerService : IAppManagerService
 
     public async Task<IReadOnlyList<AppPackage>> ListAsync(string serial, AppListFilter filter, CancellationToken cancellationToken = default)
     {
-        var wantHasIcon = filter == AppListFilter.HasIcon;
-        var packages = new List<AppPackage>();
+        // 始终拉全量（-3 + -s），合并后再按 filter 裁切，便于上层一次缓存、分段本地筛选
+        var third = await ListByFlagAsync(serial, "-3", isSystem: false, cancellationToken).ConfigureAwait(false);
+        var system = await ListByFlagAsync(serial, "-s", isSystem: true, cancellationToken).ConfigureAwait(false);
 
-        if (filter is AppListFilter.ThirdParty or AppListFilter.All or AppListFilter.HasIcon)
+        var map = new Dictionary<string, AppPackage>(StringComparer.Ordinal);
+        foreach (var p in third)
         {
-            packages.AddRange(await ListByFlagAsync(serial, "-3", isSystem: false, cancellationToken).ConfigureAwait(false));
+            map[p.PackageName] = p;
         }
 
-        if (filter is AppListFilter.System or AppListFilter.All or AppListFilter.HasIcon)
+        foreach (var p in system)
         {
-            packages.AddRange(await ListByFlagAsync(serial, "-s", isSystem: true, cancellationToken).ConfigureAwait(false));
+            if (map.TryGetValue(p.PackageName, out var existing))
+            {
+                // 同包既在 -3 又在 -s（常见于系统更新包）：一律系统，路径优先系统分区
+                var path = AppPackage.IsSystemApkPath(p.ApkPath) ? p.ApkPath : existing.ApkPath;
+                map[p.PackageName] = existing with
+                {
+                    IsSystem = true,
+                    ApkPath = string.IsNullOrWhiteSpace(path) ? existing.ApkPath : path,
+                };
+            }
+            else
+            {
+                map[p.PackageName] = p;
+            }
         }
 
-        packages = [.. packages
-            .GroupBy(p => p.PackageName, StringComparer.Ordinal)
-            .Select(g => g.First())
-            .OrderBy(p => p.PackageName, StringComparer.OrdinalIgnoreCase)];
+        var packages = map.Values
+            .Select(p => p with { IsSystem = p.IsSystem || AppPackage.IsSystemApkPath(p.ApkPath) })
+            .OrderBy(p => p.PackageName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
         var enriched = await _deviceHelper.TryEnrichAsync(serial, packages, withIcons: true, cancellationToken)
             .ConfigureAwait(false);
         if (enriched is not null)
         {
-            packages = [.. enriched];
+            packages = enriched
+                .Select(p => p with { IsSystem = p.IsSystem || AppPackage.IsSystemApkPath(p.ApkPath) })
+                .ToList();
         }
-
-        if (wantHasIcon)
+        else
         {
-            packages = [.. packages.Where(p => p.HasIcon)];
+            // helper 失败时用 query-activities 补 Launcher 标记，否则「有图标」会空列表
+            packages = await MarkLauncherPackagesAsync(serial, packages, cancellationToken).ConfigureAwait(false);
         }
 
-        return packages;
+        return ApplyClientFilter(packages, filter);
+    }
+
+    /// <summary>内存筛选（供 UI 缓存后切换分段，无需再打 adb）。</summary>
+    public static IReadOnlyList<AppPackage> ApplyClientFilter(IEnumerable<AppPackage> source, AppListFilter filter) =>
+        filter switch
+        {
+            AppListFilter.System => source.Where(p => p.IsSystem).ToList(),
+            AppListFilter.ThirdParty => source.Where(p => !p.IsSystem).ToList(),
+            // 「有图标」= 有桌面入口（真实 PNG 或首字占位）；无 Launcher 的服务包不出现
+            AppListFilter.HasIcon => source.Where(p => p.HasLauncher).ToList(),
+            _ => source.ToList(),
+        };
+
+    private async Task<List<AppPackage>> MarkLauncherPackagesAsync(
+        string serial,
+        List<AppPackage> packages,
+        CancellationToken cancellationToken)
+    {
+        var launchers = await ListLauncherPackageNamesAsync(serial, cancellationToken).ConfigureAwait(false);
+        if (launchers.Count == 0)
+        {
+            return packages;
+        }
+
+        return packages
+            .Select(p => launchers.Contains(p.PackageName) ? p with { HasLauncher = true } : p)
+            .ToList();
+    }
+
+    private async Task<HashSet<string>> ListLauncherPackageNamesAsync(string serial, CancellationToken cancellationToken)
+    {
+        var set = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var cmd in new[]
+                 {
+                     "cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER",
+                     "pm query-activities --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER",
+                 })
+        {
+            var r = await _runner.ShellAsync(serial, cmd, ShortTimeout, cancellationToken).ConfigureAwait(false);
+            var text = r.StandardOutput ?? "";
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                continue;
+            }
+
+            foreach (var raw in text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var line = raw.Trim();
+                // com.pkg/.Activity 或 package:com.pkg
+                if (line.StartsWith("package:", StringComparison.OrdinalIgnoreCase))
+                {
+                    var pkg = line["package:".Length..].Trim();
+                    if (pkg.Length > 0) set.Add(pkg);
+                    continue;
+                }
+
+                var slash = line.IndexOf('/');
+                if (slash > 0)
+                {
+                    var pkg = line[..slash].Trim();
+                    if (pkg.Contains('.', StringComparison.Ordinal) && !pkg.Contains(' ', StringComparison.Ordinal))
+                    {
+                        set.Add(pkg);
+                    }
+                }
+            }
+
+            if (set.Count > 0)
+            {
+                break;
+            }
+        }
+
+        return set;
     }
 
     public async Task<AppPackageDetail> GetDetailAsync(string serial, string packageName, CancellationToken cancellationToken = default)

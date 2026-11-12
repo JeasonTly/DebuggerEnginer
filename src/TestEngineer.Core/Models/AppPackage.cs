@@ -6,7 +6,7 @@ public enum AppListFilter
     ThirdParty,
     System,
     All,
-    /// <summary>仅显示带真实图标数据（<see cref="AppPackage.HasIcon"/>）的项。</summary>
+    /// <summary>仅显示有桌面 Launcher 入口的项（有图标/可上桌面）。</summary>
     HasIcon,
 }
 
@@ -45,6 +45,49 @@ public sealed record AppPackage(
 
     /// <summary>系统 / 第三方文字标签。</summary>
     public string KindLabel => IsSystem ? "系统" : "第三方";
+
+    /// <summary>次行：包名 · 版本（等宽）。</summary>
+    public string MetaLine
+    {
+        get
+        {
+            var ver = string.IsNullOrWhiteSpace(VersionName) ? "—" : VersionName!;
+            return $"{PackageName} · {ver}";
+        }
+    }
+
+    /// <summary>是否显示 Launcher 标签（有 MAIN+LAUNCHER 入口）。</summary>
+    public bool ShowLauncherTag => HasLauncher;
+
+    /// <summary>
+    /// 按 APK 路径判定系统应用（含 priv-app / 分区镜像），
+    /// 覆盖「第三方渠道装上但落在系统分区」的工厂包（如部分 OEM 工具）。
+    /// </summary>
+    public static bool IsSystemApkPath(string? apkPath)
+    {
+        if (string.IsNullOrWhiteSpace(apkPath))
+        {
+            return false;
+        }
+
+        var path = apkPath.Replace('\\', '/');
+        // package:/path/base.apk 或直接 /path
+        var idx = path.IndexOf("/data/app/", StringComparison.Ordinal);
+        if (idx >= 0 && !path.Contains("/priv-app/", StringComparison.Ordinal))
+        {
+            // 纯用户安装目录 → 第三方（除非另有 -s / FLAG_SYSTEM）
+            return false;
+        }
+
+        return path.Contains("/system/", StringComparison.Ordinal)
+               || path.Contains("/system_ext/", StringComparison.Ordinal)
+               || path.Contains("/product/", StringComparison.Ordinal)
+               || path.Contains("/vendor/", StringComparison.Ordinal)
+               || path.Contains("/odm/", StringComparison.Ordinal)
+               || path.Contains("/oem/", StringComparison.Ordinal)
+               || path.Contains("/apex/", StringComparison.Ordinal)
+               || path.Contains("/priv-app/", StringComparison.Ordinal);
+    }
 
     /// <summary>包名最后一段作为回退显示名（如 <c>com.android.chrome</c> → <c>chrome</c>）。</summary>
     public static string FallbackLabel(string packageName)

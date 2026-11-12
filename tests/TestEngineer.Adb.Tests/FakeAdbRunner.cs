@@ -51,4 +51,6 @@ internal sealed class FixedToolLocator(string? adb, string? scrcpy = null) : ITo
     public string? FindAdb() => adb;
 
     public string? FindScrcpy() => scrcpy;
+
+    public string? FindApksigner() => null;
 }

@@ -1,0 +1,357 @@
+<UserControl x:Class="TestEngineer.Desktop.Views.NmeaPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:TestEngineer.Desktop.Converters"
+             xmlns:vm="clr-namespace:TestEngineer.Desktop.ViewModels">
+  <UserControl.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
+    <conv:StringEqualsConverter x:Key="StrEq" />
+
+    <DataTemplate x:Key="ShareBarTemplate" DataType="{x:Type vm:NmeaFileRowItem}">
+      <Grid Height="14" MinWidth="80">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="{Binding FixedStar}" />
+          <ColumnDefinition Width="{Binding FloatStar}" />
+          <ColumnDefinition Width="{Binding DgpsStar}" />
+          <ColumnDefinition Width="{Binding SingleStar}" />
+          <ColumnDefinition Width="{Binding InvalidStar}" />
+          <ColumnDefinition Width="{Binding OtherStar}" />
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Background="{DynamicResource Brush.Success}" />
+        <Border Grid.Column="1" Background="{DynamicResource Brush.Accent}" />
+        <Border Grid.Column="2" Background="{DynamicResource Brush.Warning}" />
+        <Border Grid.Column="3" Background="{DynamicResource Brush.Warning}" Opacity="0.7" />
+        <Border Grid.Column="4" Background="{DynamicResource Brush.Danger}" />
+        <Border Grid.Column="5" Background="{DynamicResource Brush.TextSecondary}" Opacity="0.55" />
+      </Grid>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Padding="16,12,16,10"
+            BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+      <DockPanel>
+        <StackPanel>
+          <TextBlock Text="{Binding PageTitle}" Style="{StaticResource Text.PageTitle}" />
+          <TextBlock Text="{Binding PageSubtitle}" Style="{StaticResource Text.PageSubtitle}" />
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Content="取消" Margin="0,0,8,0" Style="{StaticResource Button.Ghost}"
+                  Command="{Binding CancelScanCommand}"
+                  Visibility="{Binding IsScanning, Converter={StaticResource BoolToVis}}"
+                  AutomationProperties.Name="取消扫描" />
+          <Button Content="清空" Margin="0,0,8,0" Style="{StaticResource Button.Ghost}"
+                  Command="{Binding ClearCommand}"
+                  AutomationProperties.Name="清空定位日志选择" />
+          <Button Content="选择目录" Style="{StaticResource Button.Primary}"
+                  Command="{Binding BrowseFolderCommand}"
+                  AutomationProperties.Name="选择定位日志目录" />
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- 空状态 -->
+    <ScrollViewer Padding="16,12,16,16" VerticalScrollBarVisibility="Auto"
+                  Visibility="{Binding HasResults, Converter={StaticResource InvBoolToVis}}">
+      <Grid MinHeight="280" AllowDrop="True"
+            PreviewDragOver="OnFolderDragOver" PreviewDrop="OnFolderDrop"
+            AutomationProperties.Name="定位日志拖放区">
+        <Rectangle RadiusX="8" RadiusY="8"
+                   Stroke="{DynamicResource Brush.Border}" StrokeThickness="1.5"
+                   StrokeDashArray="4 3"
+                   Fill="{DynamicResource Brush.Surface}" />
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24">
+          <ContentControl Style="{StaticResource Icon.Glyph}" Width="32" Height="32"
+                          HorizontalAlignment="Center" Margin="0,0,0,12"
+                          Foreground="{DynamicResource Brush.TextSecondary}"
+                          Content="{StaticResource Icon.Nav.Nmea}" />
+          <TextBlock Text="{Binding EmptyHint}" FontSize="14" TextAlignment="Center"
+                     TextWrapping="Wrap" MaxWidth="360"
+                     Foreground="{DynamicResource Brush.TextSecondary}" />
+          <TextBlock Margin="0,8,0,0" FontSize="12" TextAlignment="Center"
+                     TextWrapping="Wrap" MaxWidth="420"
+                     FontFamily="{StaticResource Font.Mono}"
+                     Foreground="{DynamicResource Brush.TextSecondary}"
+                     Text="{Binding Status}" />
+          <StackPanel Margin="0,16,0,0" Orientation="Horizontal" HorizontalAlignment="Center">
+            <CheckBox Content="含子目录" IsChecked="{Binding IncludeSubdirectories}" Margin="0,0,16,0"
+                      VerticalAlignment="Center" AutomationProperties.Name="含子目录" />
+            <CheckBox Content="含 .log / .nmea" IsChecked="{Binding IncludeLogAndNmea}"
+                      VerticalAlignment="Center" AutomationProperties.Name="包含 log 与 nmea" />
+          </StackPanel>
+          <Button Margin="0,16,0,0" Content="选择目录" HorizontalAlignment="Center"
+                  Style="{StaticResource Button.Secondary}"
+                  Command="{Binding BrowseFolderCommand}"
+                  AutomationProperties.Name="空状态选择定位日志目录" />
+          <ProgressBar Margin="0,16,0,0" Width="240" Height="6"
+                       Minimum="0" Maximum="100" Value="{Binding ScanProgress}"
+                       Visibility="{Binding IsScanning, Converter={StaticResource BoolToVis}}" />
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+
+    <!-- 结果区 -->
+    <Grid Visibility="{Binding HasResults, Converter={StaticResource BoolToVis}}"
+          AllowDrop="True" PreviewDragOver="OnFolderDragOver" PreviewDrop="OnFolderDrop">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <!-- 工具条：开关 / 筛选 / 导出 -->
+      <Border Grid.Row="0" Padding="16,10,16,8"
+              BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1"
+              Background="{DynamicResource Brush.Surface}">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+            <Button Content="导出 CSV" Margin="0,0,8,0" Style="{StaticResource Button.Secondary}"
+                    Command="{Binding ExportCsvCommand}"
+                    AutomationProperties.Name="导出 CSV" />
+            <Button Content="导出 KML/KMZ" Style="{StaticResource Button.Primary}"
+                    Command="{Binding ExportKmlCommand}"
+                    AutomationProperties.Name="导出 KML 或 KMZ" />
+          </StackPanel>
+          <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <CheckBox Content="含子目录" IsChecked="{Binding IncludeSubdirectories}" Margin="0,0,12,4"
+                      VerticalAlignment="Center" />
+            <CheckBox Content="含 .log / .nmea" IsChecked="{Binding IncludeLogAndNmea}" Margin="0,0,16,4"
+                      VerticalAlignment="Center" />
+            <Button Content="全部" Margin="0,0,4,4" Style="{StaticResource Button.Segment}"
+                    Command="{Binding SetFilterAllCommand}"
+                    Selector.IsSelected="{Binding FilterKind, Converter={StaticResource StrEq}, ConverterParameter=All, Mode=OneWay}" />
+            <Button Content="有效" Margin="0,0,4,4" Style="{StaticResource Button.Segment}"
+                    Command="{Binding SetFilterValidCommand}"
+                    Selector.IsSelected="{Binding FilterKind, Converter={StaticResource StrEq}, ConverterParameter=Valid, Mode=OneWay}" />
+            <Button Content="已跳过" Margin="0,0,4,4" Style="{StaticResource Button.Segment}"
+                    Command="{Binding SetFilterSkippedCommand}"
+                    Selector.IsSelected="{Binding FilterKind, Converter={StaticResource StrEq}, ConverterParameter=Skipped, Mode=OneWay}" />
+            <Button Content="含异常" Margin="0,0,12,4" Style="{StaticResource Button.Segment}"
+                    Command="{Binding SetFilterAnomaliesCommand}"
+                    Selector.IsSelected="{Binding FilterKind, Converter={StaticResource StrEq}, ConverterParameter=Anomalies, Mode=OneWay}" />
+            <TextBox Width="160" Height="28" Margin="0,0,12,4" Padding="8,0"
+                     VerticalContentAlignment="Center"
+                     Text="{Binding NameFilter, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="按文件名过滤"
+                     AutomationProperties.Name="文件名过滤" />
+            <Button Content="表格" Margin="0,0,4,4" Style="{StaticResource Button.Segment}"
+                    Command="{Binding ShowTableCommand}"
+                    Selector.IsSelected="{Binding IsTableView, Mode=OneWay}" />
+            <Button Content="图表" Margin="0,0,0,4" Style="{StaticResource Button.Segment}"
+                    Command="{Binding ShowChartCommand}"
+                    Selector.IsSelected="{Binding IsChartView, Mode=OneWay}" />
+          </WrapPanel>
+        </DockPanel>
+      </Border>
+
+      <!-- 汇总 -->
+      <Border Grid.Row="1" Padding="16,10,16,10"
+              BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+        <StackPanel>
+          <DockPanel Margin="0,0,0,8">
+            <TextBlock DockPanel.Dock="Right" Text="{Binding Status}" FontSize="12"
+                       FontFamily="{StaticResource Font.Mono}"
+                       Foreground="{DynamicResource Brush.TextSecondary}"
+                       TextTrimming="CharacterEllipsis" MaxWidth="420" />
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding SummaryGgaText}" FontSize="13" FontWeight="SemiBold"
+                         Foreground="{DynamicResource Brush.Text}" Margin="0,0,16,0" />
+              <TextBlock Text="{Binding SummaryFixRateText}" FontSize="13" FontWeight="SemiBold"
+                         Foreground="{DynamicResource Brush.Text}" Margin="0,0,16,0" />
+              <TextBlock Text="{Binding SummaryFilesText}" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" />
+            </StackPanel>
+          </DockPanel>
+          <Border Height="18" CornerRadius="4" ClipToBounds="True"
+                  Background="{DynamicResource Brush.Raised}"
+                  BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+            <Grid Margin="1">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{Binding SummaryFixedStar}" />
+                <ColumnDefinition Width="{Binding SummaryFloatStar}" />
+                <ColumnDefinition Width="{Binding SummaryDgpsStar}" />
+                <ColumnDefinition Width="{Binding SummarySingleStar}" />
+                <ColumnDefinition Width="{Binding SummaryInvalidStar}" />
+                <ColumnDefinition Width="{Binding SummaryOtherStar}" />
+              </Grid.ColumnDefinitions>
+              <Border Grid.Column="0" Background="{DynamicResource Brush.Success}" ToolTip="固定" />
+              <Border Grid.Column="1" Background="{DynamicResource Brush.Accent}" ToolTip="浮点" />
+              <Border Grid.Column="2" Background="{DynamicResource Brush.Warning}" ToolTip="差分" />
+              <Border Grid.Column="3" Background="{DynamicResource Brush.Warning}" Opacity="0.7" ToolTip="单点" />
+              <Border Grid.Column="4" Background="{DynamicResource Brush.Danger}" ToolTip="未定位" />
+              <Border Grid.Column="5" Background="{DynamicResource Brush.TextSecondary}" Opacity="0.55" ToolTip="其他" />
+            </Grid>
+          </Border>
+          <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding SummaryLegend}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal" Margin="0,0,14,4">
+                  <Border Width="10" Height="10" CornerRadius="2" Margin="0,0,6,0"
+                          VerticalAlignment="Center" Background="{Binding Fill}" />
+                  <TextBlock Text="{Binding PercentText}" FontSize="12"
+                             Foreground="{DynamicResource Brush.TextSecondary}" />
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <ProgressBar Margin="0,6,0,0" Height="4" Minimum="0" Maximum="100"
+                       Value="{Binding ScanProgress}"
+                       Visibility="{Binding IsScanning, Converter={StaticResource BoolToVis}}" />
+        </StackPanel>
+      </Border>
+
+      <!-- 表格 | 图表 -->
+      <Grid Grid.Row="2" Margin="16,10,16,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="12" />
+          <ColumnDefinition Width="280" MinWidth="220" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 表格 -->
+        <DataGrid Grid.Column="0"
+                  Visibility="{Binding IsTableView, Converter={StaticResource BoolToVis}}"
+                  ItemsSource="{Binding FilteredRows}"
+                  SelectedItem="{Binding SelectedRow}"
+                  AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                  IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
+                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                  RowHeaderWidth="0" Background="Transparent"
+                  BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                  EnableRowVirtualization="True"
+                  AutomationProperties.Name="定位日志文件表">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="相对路径" Binding="{Binding RelativePath}" Width="2*" MinWidth="140" />
+            <DataGridTextColumn Header="状态" Binding="{Binding StatusText}" Width="120" />
+            <DataGridTextColumn Header="GGA" Binding="{Binding GgaCount}" Width="64" />
+            <DataGridTextColumn Header="固定%" Binding="{Binding FixedPercent}" Width="64" />
+            <DataGridTextColumn Header="浮点%" Binding="{Binding FloatPercent}" Width="64" />
+            <DataGridTextColumn Header="差分%" Binding="{Binding DgpsPercent}" Width="64">
+              <DataGridTextColumn.Visibility>
+                <Binding Path="DataContext.ShowDgpsColumn"
+                         RelativeSource="{RelativeSource AncestorType=UserControl}"
+                         Converter="{StaticResource BoolToVis}" />
+              </DataGridTextColumn.Visibility>
+            </DataGridTextColumn>
+            <DataGridTextColumn Header="单点%" Binding="{Binding SinglePercent}" Width="64" />
+            <DataGridTextColumn Header="未定位%" Binding="{Binding InvalidPercent}" Width="72" />
+            <DataGridTemplateColumn Header="分布" Width="120" MinWidth="80">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <ContentPresenter Margin="4,2" Content="{Binding}"
+                                    ContentTemplate="{StaticResource ShareBarTemplate}" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="异常行" Binding="{Binding AnomalyCount}" Width="64" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 图表：每文件一行 100% 堆叠条 -->
+        <Border Grid.Column="0"
+                Visibility="{Binding IsChartView, Converter={StaticResource BoolToVis}}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                Background="{DynamicResource Brush.Surface}">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8">
+            <ItemsControl ItemsSource="{Binding FilteredRows}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Margin="0,0,0,8" Padding="8,6" CornerRadius="6"
+                          Background="{DynamicResource Brush.Raised}"
+                          BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                          MouseLeftButtonUp="OnChartRowClick"
+                          Cursor="Hand">
+                    <DockPanel>
+                      <TextBlock DockPanel.Dock="Top" Text="{Binding RelativePath}" FontSize="12"
+                                 FontFamily="{StaticResource Font.Mono}"
+                                 Foreground="{DynamicResource Brush.Text}"
+                                 TextTrimming="CharacterEllipsis" Margin="0,0,0,6" />
+                      <TextBlock DockPanel.Dock="Bottom" Margin="0,4,0,0" FontSize="11"
+                                 Foreground="{DynamicResource Brush.TextSecondary}"
+                                 Text="{Binding StatusText}" />
+                      <ContentPresenter Content="{Binding}"
+                                        ContentTemplate="{StaticResource ShareBarTemplate}" />
+                    </DockPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Border>
+
+        <!-- 详情 -->
+        <Border Grid.Column="2" Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                CornerRadius="6" Padding="12">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Top">
+              <TextBlock Text="选中详情" FontSize="12" FontWeight="SemiBold"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" />
+              <TextBlock Text="{Binding SelectedRow.RelativePath}" FontSize="13" FontWeight="SemiBold"
+                         TextWrapping="Wrap" Foreground="{DynamicResource Brush.Text}" />
+              <TextBlock Margin="0,6,0,0" Text="{Binding DetailTimeText}" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" />
+              <TextBlock Margin="0,4,0,8" Text="{Binding SelectedRow.StatusText}" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" />
+              <TextBlock Text="异常样本" FontSize="12" FontWeight="SemiBold"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,4,0,6" />
+            </StackPanel>
+            <ListBox ItemsSource="{Binding SelectedAnomalies}" BorderThickness="0"
+                     Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Margin="0,0,0,8">
+                    <TextBlock FontSize="11" FontFamily="{StaticResource Font.Mono}"
+                               Foreground="{DynamicResource Brush.Danger}"
+                               Text="{Binding LineNumber, StringFormat=行 {0}}" />
+                    <TextBlock FontSize="12" TextWrapping="Wrap"
+                               Foreground="{DynamicResource Brush.Text}"
+                               Text="{Binding Reason}" />
+                    <TextBlock FontSize="11" FontFamily="{StaticResource Font.Mono}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource Brush.TextSecondary}"
+                               Text="{Binding Excerpt}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </Border>
+      </Grid>
+
+      <!-- KML 选项 -->
+      <Border Grid.Row="3" Padding="16,10,16,12" Margin="0,8,0,0"
+              BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0"
+              Background="{DynamicResource Brush.Surface}">
+        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock Text="KML 选项" FontSize="12" FontWeight="SemiBold" Margin="0,0,12,4"
+                     VerticalAlignment="Center"
+                     Foreground="{DynamicResource Brush.TextSecondary}" />
+          <CheckBox Content="KMZ" IsChecked="{Binding ExportKmz}" Margin="0,0,12,4"
+                    VerticalAlignment="Center" />
+          <CheckBox Content="绝对高度" IsChecked="{Binding ExportAbsoluteAltitude}" Margin="0,0,12,4"
+                    VerticalAlignment="Center" />
+          <CheckBox Content="含逐点" IsChecked="{Binding ExportIncludePoints}" Margin="0,0,16,4"
+                    VerticalAlignment="Center" />
+          <TextBlock Text="输出目录" FontSize="12" Margin="0,0,8,4" VerticalAlignment="Center"
+                     Foreground="{DynamicResource Brush.TextSecondary}" />
+          <TextBox Width="220" Height="28" Margin="0,0,8,4" Padding="8,0"
+                   VerticalContentAlignment="Center"
+                   Text="{Binding ExportOutputDirectory, UpdateSourceTrigger=PropertyChanged}"
+                   ToolTip="留空则写到各源文件旁" />
+          <Button Content="浏览…" Margin="0,0,8,4" Style="{StaticResource Button.Ghost}"
+                  Command="{Binding BrowseExportDirectoryCommand}" />
+          <Button Content="旁路" Margin="0,0,0,4" Style="{StaticResource Button.Ghost}"
+                  Command="{Binding ClearExportDirectoryCommand}"
+                  ToolTip="清空输出目录，使用源文件旁路" />
+        </WrapPanel>
+      </Border>
+    </Grid>
+  </DockPanel>
+</UserControl>

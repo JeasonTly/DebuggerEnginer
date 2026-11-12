@@ -226,17 +226,32 @@ public sealed class AdbProcessRunner : IAdbProcessRunner
 
     private static void DrainCompleteLines(StringBuilder pending, Action<string> callback)
     {
-        while (true)
+        var text = pending.ToString();
+        var start = 0;
+        for (var i = 0; i < text.Length; i++)
         {
-            var text = pending.ToString();
-            var newline = text.IndexOf('\n', StringComparison.Ordinal);
-            if (newline < 0)
+            if (text[i] is not ('\n' or '\r'))
             {
-                return;
+                continue;
             }
 
-            Emit(callback, text[..newline]);
-            pending.Remove(0, newline + 1);
+            var line = text[start..i];
+            if (line.Length > 0)
+            {
+                Emit(callback, line);
+            }
+
+            if (text[i] == '\r' && i + 1 < text.Length && text[i + 1] == '\n')
+            {
+                i++;
+            }
+
+            start = i + 1;
+        }
+
+        if (start > 0)
+        {
+            pending.Remove(0, start);
         }
     }
 

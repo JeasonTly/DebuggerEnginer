@@ -74,10 +74,17 @@ public interface IDebugCommandService
     /// <summary>按时长跑 monkey：以极大事件数启动，到点后在设备端杀掉 monkey 进程。</summary>
     Task<MonkeyRunResult> RunMonkeyAsync(string serial, MonkeyOptions options, IProgress<RunningTaskState>? progress = null, Action<string>? onOutput = null, CancellationToken cancellationToken = default);
 
+    /// <summary>结束设备上正在运行的 monkey，不要求由本次会话启动。</summary>
+    Task<AdbCommandResult> StopRunningMonkeyAsync(string serial, CancellationToken cancellationToken = default);
+
     Task<AdbCommandResult> CaptureBugreportAsync(string serial, string outputPath, IProgress<RunningTaskState>? progress = null, CancellationToken cancellationToken = default);
 
-    /// <summary>导出 <c>logcat -d</c> 并压缩为 zip。</summary>
-    Task<AdbCommandResult> ExportLogcatZipAsync(string serial, string zipPath, CancellationToken cancellationToken = default);
+    /// <summary>导出诊断日志包（logcat + bugreport + MTK/展讯/高通平台日志目录）并压缩为 zip。</summary>
+    Task<AdbCommandResult> ExportLogcatZipAsync(
+        string serial,
+        string zipPath,
+        IProgress<RunningTaskState>? progress = null,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>控制台命令完成通知。</summary>

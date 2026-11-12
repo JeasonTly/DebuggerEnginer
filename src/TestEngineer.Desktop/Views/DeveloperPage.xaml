@@ -1,0 +1,542 @@
+<UserControl x:Class="TestEngineer.Desktop.Views.DeveloperPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:TestEngineer.Desktop.Converters"
+             xmlns:ctl="clr-namespace:TestEngineer.Desktop.Controls">
+  <UserControl.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
+    <conv:StringEqualsConverter x:Key="StrEq" />
+    <Style x:Key="HubButton" TargetType="Button" BasedOn="{StaticResource Button.Primary}">
+      <Setter Property="Height" Value="26" />
+      <Setter Property="MinHeight" Value="26" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="Padding" Value="8,0" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <DataTemplate x:Key="AnalyzeLine">
+      <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" Margin="0,1,12,3"
+                 Foreground="{DynamicResource Brush.Text}" />
+    </DataTemplate>
+    <Style x:Key="AnalyzeGroup" TargetType="Expander">
+      <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Expander">
+            <StackPanel>
+              <ToggleButton IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                            HorizontalContentAlignment="Left" Cursor="Hand" Focusable="False">
+                <ToggleButton.Template>
+                  <ControlTemplate TargetType="ToggleButton">
+                    <Border Background="Transparent" Padding="0,6">
+                      <ContentPresenter HorizontalAlignment="Left" />
+                    </Border>
+                  </ControlTemplate>
+                </ToggleButton.Template>
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock x:Name="Chevron" Text="▸" Width="14" FontSize="12" VerticalAlignment="Center"
+                             Foreground="{DynamicResource Brush.TextSecondary}" />
+                  <ContentPresenter ContentSource="Header" VerticalAlignment="Center" />
+                </StackPanel>
+              </ToggleButton>
+              <ContentPresenter x:Name="Body" Margin="14,0,0,4" Visibility="Collapsed" />
+            </StackPanel>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsExpanded" Value="True">
+                <Setter TargetName="Body" Property="Visibility" Value="Visible" />
+                <Setter TargetName="Chevron" Property="Text" Value="▾" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="ChoiceButton" TargetType="Button" BasedOn="{StaticResource Button.Segment}">
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="MinHeight" Value="32" />
+      <Setter Property="MinWidth" Value="220" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+      <Setter Property="Padding" Value="12,6" />
+    </Style>
+  </UserControl.Resources>
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Padding="16,12,16,10" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+      <DockPanel>
+        <Button DockPanel.Dock="Left" Content="返回" Margin="0,0,12,0" VerticalAlignment="Center"
+                Style="{StaticResource Button.Secondary}"
+                Command="{Binding BackCommand}"
+                Visibility="{Binding IsHome, Converter={StaticResource InvBoolToVis}}"
+                AutomationProperties.Name="返回开发者选项" />
+        <StackPanel VerticalAlignment="Center">
+          <TextBlock Text="{Binding PageTitle}" Style="{StaticResource Text.PageTitle}" />
+          <TextBlock Text="{Binding PageSubtitle}" Style="{StaticResource Text.PageSubtitle}" />
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <ScrollViewer Padding="16,12,16,16" VerticalScrollBarVisibility="Auto">
+      <Grid>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"
+                    Visibility="{Binding IsHome, Converter={StaticResource BoolToVis}}">
+          <Button Margin="0,0,8,0" Style="{StaticResource HubButton}"
+                  Command="{Binding OpenSectionCommand}" CommandParameter="images"
+                  ToolTip="格式转换、开机动画" AutomationProperties.Name="图片处理">
+            <StackPanel Orientation="Horizontal">
+              <ContentControl Style="{StaticResource Icon.Glyph}" Width="12" Height="12" Margin="0,0,4,0"
+                              Content="{StaticResource Icon.Dev.Image}" />
+              <TextBlock Text="图片处理" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource HubButton}"
+                  Command="{Binding OpenSectionCommand}" CommandParameter="apps"
+                  ToolTip="预置包、应用分析、重新签名" AutomationProperties.Name="应用处理">
+            <StackPanel Orientation="Horizontal">
+              <ContentControl Style="{StaticResource Icon.Glyph}" Width="12" Height="12" Margin="0,0,4,0"
+                              Content="{StaticResource Icon.Dev.Package}" />
+              <TextBlock Text="应用处理" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+
+        <StackPanel MaxWidth="720" HorizontalAlignment="Left"
+                    Visibility="{Binding IsImages, Converter={StaticResource BoolToVis}}">
+          <Border Padding="12" Margin="0,0,0,12"
+                  Background="{DynamicResource Brush.Surface}"
+                  BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8">
+            <StackPanel>
+              <TextBlock Text="格式转换" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"
+                         Foreground="{DynamicResource Brush.TextSecondary}" />
+              <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="72" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="源文件" />
+                <TextBox Grid.Column="1" Height="32" Margin="0,0,8,0" IsReadOnly="True"
+                         VerticalContentAlignment="Center" Padding="8,0"
+                         Text="{Binding ConvertSource, Mode=OneWay}"
+                         AutomationProperties.Name="格式转换源文件" />
+                <Button Grid.Column="2" Content="选择" MinWidth="72"
+                        Command="{Binding BrowseConvertSourceCommand}"
+                        AutomationProperties.Name="选择源图片" />
+              </Grid>
+              <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Width="72" VerticalAlignment="Center" FontSize="12"
+                           Foreground="{DynamicResource Brush.TextSecondary}" Text="格式" />
+                <Border CornerRadius="6" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                        Background="{DynamicResource Brush.Raised}" Padding="2">
+                  <StackPanel Orientation="Horizontal">
+                    <Button Content="BMP 开机 Logo" Style="{StaticResource Button.Segment}"
+                            Command="{Binding SetImageFormatCommand}" CommandParameter="bmp"
+                            Selector.IsSelected="{Binding ImageFormat, Converter={StaticResource StrEq}, ConverterParameter=bmp, Mode=OneWay}"
+                            AutomationProperties.Name="输出 BMP 开机 Logo" />
+                    <Button Content="PNG 壁纸" Margin="2,0,0,0" Style="{StaticResource Button.Segment}"
+                            Command="{Binding SetImageFormatCommand}" CommandParameter="png"
+                            Selector.IsSelected="{Binding ImageFormat, Converter={StaticResource StrEq}, ConverterParameter=png, Mode=OneWay}"
+                            AutomationProperties.Name="输出 PNG 壁纸" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+              <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="72" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="输出名" />
+                <TextBox Grid.Column="1" Height="32" VerticalContentAlignment="Center" Padding="8,0"
+                         Text="{Binding OutputName, UpdateSourceTrigger=PropertyChanged}"
+                         AutomationProperties.Name="输出文件名" />
+              </Grid>
+              <TextBlock Margin="72,0,0,8" FontSize="12" TextWrapping="Wrap"
+                         Foreground="{DynamicResource Brush.TextSecondary}"
+                         Text="BMP 为 24 位，默认 logo.bmp。PNG 默认 wallpaper_01.png；文件名以 wallpaper_ 开头时，会在同一目录再保存一份同内容的 wallpaper_*_small。" />
+              <Button Content="生成并另存为" HorizontalAlignment="Left" Style="{StaticResource Button.Primary}"
+                      Command="{Binding BuildConvertCommand}"
+                      AutomationProperties.Name="生成并另存为图片" />
+              <TextBlock Margin="0,8,0,0" FontSize="12" TextWrapping="Wrap"
+                         Foreground="{DynamicResource Brush.TextSecondary}"
+                         Text="{Binding ConvertStatus}" />
+            </StackPanel>
+          </Border>
+
+          <Border Padding="12"
+                  Background="{DynamicResource Brush.Surface}"
+                  BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8">
+            <StackPanel>
+              <TextBlock Text="开机动画" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"
+                         Foreground="{DynamicResource Brush.TextSecondary}" />
+              <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="72" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="图片来源" />
+                <TextBox Grid.Column="1" Height="32" Margin="0,0,8,0" IsReadOnly="True"
+                         VerticalContentAlignment="Center" Padding="8,0"
+                         Text="{Binding BootSourceText, Mode=OneWay}"
+                         AutomationProperties.Name="开机动画图片来源" />
+                <Button Grid.Column="2" Content="选择图片" MinWidth="88" Margin="0,0,8,0"
+                        Command="{Binding BrowseBootFilesCommand}"
+                        AutomationProperties.Name="选择开机动画图片" />
+                <Button Grid.Column="3" Content="选择文件夹" MinWidth="96"
+                        Command="{Binding BrowseBootFolderCommand}"
+                        AutomationProperties.Name="选择开机动画文件夹" />
+              </Grid>
+              <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="72" />
+                  <ColumnDefinition Width="120" />
+                </Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="帧率" />
+                <TextBox Grid.Column="1" Height="32" VerticalContentAlignment="Center" Padding="8,0"
+                         Text="{Binding FpsText, UpdateSourceTrigger=PropertyChanged}"
+                         AutomationProperties.Name="开机动画帧率" />
+              </Grid>
+              <TextBlock Margin="72,0,0,8" FontSize="12" TextWrapping="Wrap"
+                         Foreground="{DynamicResource Brush.TextSecondary}"
+                         Text="生成不压缩的 bootanimation.zip。帧率无效时按 30。分辨率以第一张为准。" />
+              <Button Content="生成并另存为" HorizontalAlignment="Left" Style="{StaticResource Button.Primary}"
+                      Command="{Binding BuildBootCommand}"
+                      AutomationProperties.Name="生成并另存为开机动画" />
+              <ProgressBar Margin="0,8,0,0" Style="{StaticResource ProgressBar.Meter}"
+                           Value="{Binding BootProgress}"
+                           Visibility="{Binding ShowBootProgress, Converter={StaticResource BoolToVis}}" />
+              <TextBlock Margin="0,8,0,0" FontSize="12" TextWrapping="Wrap"
+                         Foreground="{DynamicResource Brush.TextSecondary}"
+                         Text="{Binding BootStatus}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <WrapPanel HorizontalAlignment="Left"
+                   Visibility="{Binding IsApps, Converter={StaticResource BoolToVis}}">
+          <Button Margin="0,0,8,8" Style="{StaticResource HubButton}"
+                  Command="{Binding OpenSectionCommand}" CommandParameter="preset"
+                  ToolTip="从 APK 生成 Android.mk 或 Android.bp" AutomationProperties.Name="生成预置包">
+            <StackPanel Orientation="Horizontal">
+              <ContentControl Style="{StaticResource Icon.Glyph}" Width="12" Height="12" Margin="0,0,4,0"
+                              Content="{StaticResource Icon.Dev.Package}" />
+              <TextBlock Text="生成预置包" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Margin="0,0,8,8" Style="{StaticResource HubButton}"
+                  Command="{Binding OpenSectionCommand}" CommandParameter="analyze"
+                  ToolTip="统计界面、服务、Provider、权限和系统共享用户" AutomationProperties.Name="应用分析">
+            <StackPanel Orientation="Horizontal">
+              <ContentControl Style="{StaticResource Icon.Glyph}" Width="12" Height="12" Margin="0,0,4,0"
+                              Content="{StaticResource Icon.Dev.Analyze}" />
+              <TextBlock Text="应用分析" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Margin="0,0,8,8" Style="{StaticResource HubButton}"
+                  Command="{Binding OpenSectionCommand}" CommandParameter="sign"
+                  ToolTip="用签名文件重新签名" AutomationProperties.Name="重新签名">
+            <StackPanel Orientation="Horizontal">
+              <ContentControl Style="{StaticResource Icon.Glyph}" Width="12" Height="12" Margin="0,0,4,0"
+                              Content="{StaticResource Icon.Dev.Sign}" />
+              <TextBlock Text="重新签名" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </WrapPanel>
+
+        <Border MaxWidth="720" HorizontalAlignment="Left" Padding="12"
+                AllowDrop="True" PreviewDragOver="OnFileDragOver" PreviewDrop="OnPresetDrop"
+                Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8"
+                Visibility="{Binding IsPreset, Converter={StaticResource BoolToVis}}">
+          <StackPanel>
+            <Grid Margin="0,0,0,12">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="APK" />
+              <TextBox Grid.Column="1" Height="32" Margin="0,0,8,0" IsReadOnly="True"
+                       VerticalContentAlignment="Center" Padding="8,0"
+                       Text="{Binding PresetApk, Mode=OneWay}"
+                       ToolTip="可以把 APK 拖到这里"
+                       AutomationProperties.Name="预置包 APK" />
+              <Button Grid.Column="2" Content="选择" MinWidth="72"
+                      Command="{Binding BrowsePresetApkCommand}"
+                      AutomationProperties.Name="选择预置包 APK" />
+            </Grid>
+
+            <Grid Margin="0,0,0,12">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="模块名" />
+              <TextBox Grid.Column="1" Height="32" VerticalContentAlignment="Center" Padding="8,0"
+                       Text="{Binding ModuleName, UpdateSourceTrigger=PropertyChanged}"
+                       AutomationProperties.Name="预置模块名" />
+            </Grid>
+
+            <TextBlock FontSize="12" Margin="0,0,0,6" Foreground="{DynamicResource Brush.TextSecondary}" Text="构建文件" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+              <Button Content="Android.mk" Style="{StaticResource ChoiceButton}" Margin="0,0,8,0"
+                      Command="{Binding SetBuildFileCommand}" CommandParameter="mk"
+                      Selector.IsSelected="{Binding BuildFile, Converter={StaticResource StrEq}, ConverterParameter=mk, Mode=OneWay}"
+                      AutomationProperties.Name="生成 Android.mk" />
+              <Button Content="Android.bp" Style="{StaticResource ChoiceButton}"
+                      Command="{Binding SetBuildFileCommand}" CommandParameter="bp"
+                      Selector.IsSelected="{Binding BuildFile, Converter={StaticResource StrEq}, ConverterParameter=bp, Mode=OneWay}"
+                      AutomationProperties.Name="生成 Android.bp" />
+            </StackPanel>
+
+            <TextBlock FontSize="12" Margin="0,0,0,6" Foreground="{DynamicResource Brush.TextSecondary}" Text="证书" />
+            <StackPanel Margin="0,0,0,12">
+              <Button Content="自身签名 (PRESIGNED)" Style="{StaticResource ChoiceButton}"
+                      Command="{Binding SetCertificateCommand}" CommandParameter="presigned"
+                      Selector.IsSelected="{Binding Certificate, Converter={StaticResource StrEq}, ConverterParameter=presigned, Mode=OneWay}"
+                      AutomationProperties.Name="证书 自身签名" />
+              <Button Content="platform" Style="{StaticResource ChoiceButton}"
+                      Command="{Binding SetCertificateCommand}" CommandParameter="platform"
+                      Selector.IsSelected="{Binding Certificate, Converter={StaticResource StrEq}, ConverterParameter=platform, Mode=OneWay}"
+                      AutomationProperties.Name="证书 platform" />
+              <Button Content="shared" Style="{StaticResource ChoiceButton}"
+                      Command="{Binding SetCertificateCommand}" CommandParameter="shared"
+                      Selector.IsSelected="{Binding Certificate, Converter={StaticResource StrEq}, ConverterParameter=shared, Mode=OneWay}"
+                      AutomationProperties.Name="证书 shared" />
+              <Button Content="media" Style="{StaticResource ChoiceButton}"
+                      Command="{Binding SetCertificateCommand}" CommandParameter="media"
+                      Selector.IsSelected="{Binding Certificate, Converter={StaticResource StrEq}, ConverterParameter=media, Mode=OneWay}"
+                      AutomationProperties.Name="证书 media" />
+            </StackPanel>
+
+            <TextBlock FontSize="12" Margin="0,0,0,6" Foreground="{DynamicResource Brush.TextSecondary}" Text="dex 预优化" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+              <Button Content="关闭" Style="{StaticResource ChoiceButton}" Margin="0,0,8,0"
+                      Command="{Binding SetDexCommand}" CommandParameter="false"
+                      Selector.IsSelected="{Binding DexPreopt, Converter={StaticResource StrEq}, ConverterParameter=False, Mode=OneWay}"
+                      AutomationProperties.Name="关闭 dex 预优化" />
+              <Button Content="启用" Style="{StaticResource ChoiceButton}"
+                      Command="{Binding SetDexCommand}" CommandParameter="true"
+                      Selector.IsSelected="{Binding DexPreopt, Converter={StaticResource StrEq}, ConverterParameter=True, Mode=OneWay}"
+                      AutomationProperties.Name="启用 dex 预优化" />
+            </StackPanel>
+
+            <TextBlock Margin="0,0,0,12" FontSize="12" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Brush.TextSecondary}"
+                       Text="Android.mk 会抽出一套原生库，优先级为 arm64-v8a、armeabi-v7a、armeabi。Android.bp 把 so 留在 APK 里。" />
+            <Button Content="选择目录并生成" HorizontalAlignment="Left" Style="{StaticResource Button.Primary}"
+                    Command="{Binding GeneratePresetCommand}"
+                    AutomationProperties.Name="选择目录并生成预置包" />
+            <TextBlock Margin="0,8,0,0" FontSize="12" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Brush.TextSecondary}"
+                       Text="{Binding PresetStatus}" />
+          </StackPanel>
+        </Border>
+
+        <Border MaxWidth="720" HorizontalAlignment="Left" Padding="12"
+                AllowDrop="True" PreviewDragOver="OnFileDragOver" PreviewDrop="OnAnalyzeDrop"
+                Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8"
+                Visibility="{Binding IsAnalyze, Converter={StaticResource BoolToVis}}">
+          <StackPanel>
+            <Grid Margin="0,0,0,12">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="APK" />
+              <TextBox Grid.Column="1" Height="32" Margin="0,0,8,0" IsReadOnly="True"
+                       VerticalContentAlignment="Center" Padding="8,0"
+                       Text="{Binding AnalyzeApk, Mode=OneWay}"
+                       ToolTip="可以把 APK 拖到这里"
+                       AutomationProperties.Name="分析 APK" />
+              <Button Grid.Column="2" Content="选择" MinWidth="72" Margin="0,0,8,0"
+                      Command="{Binding BrowseAnalyzeApkCommand}"
+                      AutomationProperties.Name="选择要分析的 APK" />
+              <Button Grid.Column="3" Content="分析" MinWidth="72" Style="{StaticResource Button.Primary}"
+                      Command="{Binding AnalyzeCommand}"
+                      AutomationProperties.Name="分析应用" />
+            </Grid>
+            <TextBlock Margin="0,0,0,8" FontSize="12" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Brush.TextSecondary}"
+                       Text="{Binding AnalyzeStatus}" />
+            <ScrollViewer MinHeight="220" MaxHeight="520"
+                          VerticalScrollBarVisibility="Visible"
+                          HorizontalScrollBarVisibility="Disabled"
+                          CanContentScroll="False"
+                          Background="{DynamicResource Brush.Background}"
+                          BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                          Padding="8,4,0,8"
+                          Visibility="{Binding HasAnalyzeResult, Converter={StaticResource BoolToVis}}"
+                          AutomationProperties.Name="分析结果">
+              <ScrollViewer.Resources>
+                <Style TargetType="ScrollBar">
+                  <Style.Triggers>
+                    <Trigger Property="Orientation" Value="Vertical">
+                      <Setter Property="Width" Value="14" />
+                    </Trigger>
+                  </Style.Triggers>
+                </Style>
+              </ScrollViewer.Resources>
+              <StackPanel>
+                <Expander Style="{StaticResource AnalyzeGroup}"
+                          IsExpanded="{Binding AnalyzeActivitiesExpanded, Mode=TwoWay}"
+                          Header="{Binding AnalyzeActivitiesTitle}">
+                  <StackPanel>
+                    <TextBlock Text="总览" FontSize="12" FontWeight="SemiBold" Margin="0,2,0,4"
+                               Foreground="{DynamicResource Brush.TextSecondary}" />
+                    <ItemsControl ItemsSource="{Binding AnalyzeOverviewLines}"
+                                  ItemTemplate="{StaticResource AnalyzeLine}" />
+                    <TextBlock Text="主入口" FontSize="12" FontWeight="SemiBold" Margin="0,8,0,4"
+                               Foreground="{DynamicResource Brush.TextSecondary}" />
+                    <ItemsControl ItemsSource="{Binding AnalyzeMainEntries}"
+                                  ItemTemplate="{StaticResource AnalyzeLine}" />
+                    <TextBlock Text="界面" FontSize="12" FontWeight="SemiBold" Margin="0,8,0,4"
+                               Foreground="{DynamicResource Brush.TextSecondary}" />
+                    <ItemsControl ItemsSource="{Binding AnalyzeActivities}"
+                                  ItemTemplate="{StaticResource AnalyzeLine}" />
+                  </StackPanel>
+                </Expander>
+                <Expander Style="{StaticResource AnalyzeGroup}"
+                          IsExpanded="{Binding AnalyzeServicesExpanded, Mode=TwoWay}"
+                          Header="{Binding AnalyzeServicesTitle}">
+                  <ItemsControl ItemsSource="{Binding AnalyzeServices}"
+                                ItemTemplate="{StaticResource AnalyzeLine}" />
+                </Expander>
+                <Expander Style="{StaticResource AnalyzeGroup}"
+                          IsExpanded="{Binding AnalyzeProvidersExpanded, Mode=TwoWay}"
+                          Header="{Binding AnalyzeProvidersTitle}">
+                  <ItemsControl ItemsSource="{Binding AnalyzeProviders}"
+                                ItemTemplate="{StaticResource AnalyzeLine}" />
+                </Expander>
+                <Expander Style="{StaticResource AnalyzeGroup}"
+                          IsExpanded="{Binding AnalyzePermissionsExpanded, Mode=TwoWay}"
+                          Header="{Binding AnalyzePermissionsTitle}">
+                  <ItemsControl ItemsSource="{Binding AnalyzePermissions}"
+                                ItemTemplate="{StaticResource AnalyzeLine}" />
+                </Expander>
+              </StackPanel>
+            </ScrollViewer>
+          </StackPanel>
+        </Border>
+
+        <Border MaxWidth="720" HorizontalAlignment="Left" Padding="12"
+                AllowDrop="True" PreviewDragOver="OnFileDragOver" PreviewDrop="OnSignDrop"
+                Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8"
+                Visibility="{Binding IsSign, Converter={StaticResource BoolToVis}}">
+          <StackPanel>
+            <Grid Margin="0,0,0,12">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="APK" />
+              <TextBox x:Name="SignApkBox" Grid.Column="1" Height="32" Margin="0,0,8,0" IsReadOnly="True"
+                       VerticalContentAlignment="Center" Padding="8,0"
+                       Text="{Binding SignApk, Mode=OneWay}"
+                       ToolTip="可以把 APK 拖到这里"
+                       AutomationProperties.Name="待签名 APK" />
+              <Button Grid.Column="2" Content="选择" MinWidth="72"
+                      Command="{Binding BrowseSignApkCommand}"
+                      AutomationProperties.Name="选择待签名 APK" />
+            </Grid>
+
+            <Grid Margin="0,0,0,12">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="签名文件" />
+              <TextBox x:Name="SignKeystoreBox" Grid.Column="1" Height="32" Margin="0,0,8,0" IsReadOnly="True"
+                       VerticalContentAlignment="Center" Padding="8,0"
+                       Text="{Binding SignKeystore, Mode=OneWay}"
+                       ToolTip="可以把 jks、keystore、p12、pfx 拖到这里"
+                       AutomationProperties.Name="签名文件" />
+              <Button Grid.Column="2" Content="选择" MinWidth="72"
+                      Command="{Binding BrowseSignKeystoreCommand}"
+                      AutomationProperties.Name="选择签名文件" />
+            </Grid>
+
+            <Grid Margin="0,0,0,12">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="别名" />
+              <TextBox Grid.Column="1" Height="32" VerticalContentAlignment="Center" Padding="8,0"
+                       Text="{Binding SignAlias, UpdateSourceTrigger=PropertyChanged}"
+                       AutomationProperties.Name="密钥别名" />
+            </Grid>
+
+            <Grid Margin="0,0,0,12">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="库密码" />
+              <PasswordBox Grid.Column="1" Height="32" Padding="8,0" VerticalContentAlignment="Center"
+                           ctl:PasswordBoxHelper.BindPassword="True"
+                           ctl:PasswordBoxHelper.BoundPassword="{Binding StorePassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           AutomationProperties.Name="库密码" />
+            </Grid>
+
+            <Grid Margin="0,0,0,8">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="密钥密码" />
+              <PasswordBox Grid.Column="1" Height="32" Padding="8,0" VerticalContentAlignment="Center"
+                           ctl:PasswordBoxHelper.BindPassword="True"
+                           ctl:PasswordBoxHelper.BoundPassword="{Binding KeyPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           AutomationProperties.Name="密钥密码" />
+            </Grid>
+            <TextBlock Margin="0,0,0,12" FontSize="12" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Brush.TextSecondary}"
+                       Text="别名留空时，如果库里只有一个密钥会自动填写。密钥密码留空则与库密码相同。密码只保存在本机。" />
+
+            <Button Content="重新签名" HorizontalAlignment="Left" Style="{StaticResource Button.Primary}"
+                    Command="{Binding SignCommand}"
+                    AutomationProperties.Name="重新签名" />
+            <TextBlock Margin="0,8,0,12" FontSize="12" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Brush.TextSecondary}"
+                       Text="{Binding SignStatus}" />
+
+            <TextBlock Margin="0,0,0,6" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="签名历史" />
+            <TextBlock Margin="0,0,0,8" FontSize="12" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Brush.TextSecondary}"
+                       Text="还没有保存过签名文件。"
+                       Visibility="{Binding HasSigningProfiles, Converter={StaticResource InvBoolToVis}}" />
+            <ItemsControl ItemsSource="{Binding SigningProfiles}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Style="{StaticResource ChoiceButton}"
+                          Command="{Binding DataContext.SelectSigningProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding Id}"
+                          ToolTip="{Binding ToolTip}"
+                          Selector.IsSelected="{Binding IsSelected, Mode=OneWay}"
+                          AutomationProperties.Name="{Binding Label}">
+                    <TextBlock Text="{Binding Label}" MaxWidth="420" TextTrimming="CharacterEllipsis" />
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Content="从历史移除" HorizontalAlignment="Left" Margin="0,8,0,0"
+                    Command="{Binding RemoveSigningProfileCommand}"
+                    Visibility="{Binding HasSelectedProfile, Converter={StaticResource BoolToVis}}"
+                    AutomationProperties.Name="从历史移除签名文件" />
+          </StackPanel>
+        </Border>
+      </Grid>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

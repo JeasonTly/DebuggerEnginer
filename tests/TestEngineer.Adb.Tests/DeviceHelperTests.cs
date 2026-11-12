@@ -93,6 +93,8 @@ public sealed class AppManagerEnrichmentTests
                 .WhenShellContains(
                     "pm list packages -f -3",
                     "package:/data/app/base.apk=com.litedo\n")
+                .WhenShellContains("pm list packages -f -s", "")
+                .WhenShellContains("query-activities", "")
                 .When(args => args.Count >= 1 && args[0] == "push", _ => new AdbCommandResult(1, "", "push failed"));
 
             var service = new AppManagerService(runner, new DeviceHelperClient(runner, () => jar));
@@ -110,12 +112,12 @@ public sealed class AppManagerEnrichmentTests
     }
 
     [Fact]
-    public async Task ListAsync_HasIconFilter_OnlyReturnsPackagesWithIconData()
+    public async Task ListAsync_HasIconFilter_OnlyReturnsLauncherPackages()
     {
         var helperStdout = """
             TE_HELPER_OK
             TE1	com.litedo	LiteDo	V1	1	0	1	aGVsbG8=
-            TE1	com.noicon	NoIcon	V1	1	0	1	-
+            TE1	com.noscreen	NoScreen	V1	1	0	0	-
             TE_HELPER_DONE
             """;
 
@@ -126,7 +128,7 @@ public sealed class AppManagerEnrichmentTests
             var runner = new FakeAdbRunner()
                 .WhenShellContains(
                     "pm list packages -f -3",
-                    "package:/a.apk=com.litedo\npackage:/b.apk=com.noicon\n")
+                    "package:/a.apk=com.litedo\npackage:/b.apk=com.noscreen\n")
                 .WhenShellContains(
                     "pm list packages -f -s",
                     "")
@@ -138,6 +140,7 @@ public sealed class AppManagerEnrichmentTests
 
             var pkg = Assert.Single(list);
             Assert.Equal("com.litedo", pkg.PackageName);
+            Assert.True(pkg.HasLauncher);
             Assert.True(pkg.HasIcon);
             Assert.Equal("LiteDo", pkg.Label);
         }

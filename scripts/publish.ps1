@@ -33,7 +33,20 @@ Write-Host "adb=$(Test-Path $adb) scrcpy=$(Test-Path $scrcpy) jar=$(Test-Path $j
 
 if (-not $SkipZip) {
   if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-  Compress-Archive -Path (Join-Path $appDir '*') -DestinationPath $zipPath -Force
+  Add-Type -AssemblyName System.IO.Compression
+  Add-Type -AssemblyName System.IO.Compression.FileSystem
+  $zip = [System.IO.Compression.ZipFile]::Open($zipPath, [System.IO.Compression.ZipArchiveMode]::Create)
+  try {
+    Get-ChildItem $appDir -Recurse -File | ForEach-Object {
+      $rel = $_.FullName.Substring($appDir.Length).TrimStart('\').Replace('\', '/')
+      $entry = $zip.CreateEntry($rel, [System.IO.Compression.CompressionLevel]::Optimal)
+      $entryStream = $entry.Open()
+      try {
+        $fs = [System.IO.File]::Open($_.FullName, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        try { $fs.CopyTo($entryStream) } finally { $fs.Dispose() }
+      } finally { $entryStream.Dispose() }
+    }
+  } finally { $zip.Dispose() }
   Write-Host "ZIP: $zipPath"
   $sha = Get-FileHash $zipPath -Algorithm SHA256
   @"

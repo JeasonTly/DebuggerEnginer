@@ -5,8 +5,9 @@
       "id": "top-activity",
       "category": "诊断查询",
       "title": "栈顶 Activity",
-      "args": ["shell", "dumpsys", "activity", "activities"],
-      "timeoutSeconds": 30
+      "description": "只显示前台包名和组件名。",
+      "args": ["shell", "dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity|ResumedActivity'; dumpsys window | grep -E 'mCurrentFocus|mFocusedApp' || true"],
+      "timeoutSeconds": 20
     },
     {
       "id": "list-users",
@@ -30,91 +31,589 @@
       "timeoutSeconds": 60
     },
     {
+      "id": "foreground-now",
+      "category": "诊断查询",
+      "title": "当前前台",
+      "description": "只留前台 Activity 和当前焦点。",
+      "args": ["shell", "dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity'; dumpsys window | grep -E 'mCurrentFocus|mFocusedApp' || true"],
+      "timeoutSeconds": 25
+    },
+    {
+      "id": "uiautomator-dump",
+      "category": "诊断查询",
+      "title": "界面层级",
+      "description": "uiautomator dump /dev/tty",
+      "args": ["shell", "uiautomator dump /dev/tty"],
+      "timeoutSeconds": 45
+    },
+    {
+      "id": "logcat-crash",
+      "category": "诊断查询",
+      "title": "崩溃缓冲",
+      "description": "logcat -b crash -d -t 300",
+      "args": ["logcat", "-b", "crash", "-d", "-t", "300"],
+      "timeoutSeconds": 20
+    },
+    {
+      "id": "dropbox-summary",
+      "category": "诊断查询",
+      "title": "ANR / Crash 摘要",
+      "description": "dropbox 里的 crash 与 ANR 条目。",
+      "args": ["shell", "dumpsys dropbox | grep -E 'data_app_crash|system_app_crash|system_server_crash|data_app_anr|system_app_anr|system_server_anr' || true"],
+      "timeoutSeconds": 40
+    },
+    {
+      "id": "build-fingerprint",
+      "category": "诊断查询",
+      "title": "版本指纹",
+      "description": "fingerprint、构建类型、incremental、安全补丁、硬件。",
+      "args": ["shell", "echo fingerprint=$(getprop ro.build.fingerprint); echo type=$(getprop ro.build.type); echo incremental=$(getprop ro.build.version.incremental); echo security_patch=$(getprop ro.build.version.security_patch); echo hardware=$(getprop ro.hardware)"],
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "meminfo",
+      "category": "诊断查询",
+      "title": "应用内存",
+      "description": "从应用列表选择后查询 dumpsys meminfo。",
+      "args": ["shell", "dumpsys", "meminfo", "{package}"],
+      "timeoutSeconds": 30
+    },
+    {
+      "id": "gfxinfo",
+      "category": "诊断查询",
+      "title": "掉帧",
+      "description": "从应用列表选择后查询 dumpsys gfxinfo。",
+      "args": ["shell", "dumpsys", "gfxinfo", "{package}"],
+      "timeoutSeconds": 20
+    },
+    {
+      "id": "oem-mtk-loggerui",
+      "category": "日志管理",
+      "title": "打开 MTK Logger",
+      "description": "com.debug.loggerui 主界面。",
+      "args": ["shell", "am", "start", "-n", "com.debug.loggerui/com.debug.loggerui.MainActivity"],
+      "whenPackageExists": "com.debug.loggerui",
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "oem-sprd-logmanager",
+      "category": "日志管理",
+      "title": "打开展讯 Logger",
+      "description": "com.sprd.logmanager 默认主界面。",
+      "args": ["shell", "am", "start", "-n", "com.sprd.logmanager/com.sprd.logmanager.logui.LogMainActivity"],
+      "whenPackageExists": "com.sprd.logmanager",
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "oem-qcom-logsettings",
+      "category": "日志管理",
+      "title": "打开高通 Logger",
+      "description": "com.android.logsettings 主界面。",
+      "args": ["shell", "am", "start", "-n", "com.android.logsettings/com.android.logsettings.MainActivity"],
+      "whenPackageExists": "com.android.logsettings",
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
       "id": "oem-engineer-mode",
-      "category": "日志入口",
+      "category": "日志管理",
       "title": "打开 EngineerMode",
       "args": ["shell", "am", "start", "-n", "com.sprd.engineermode/.EngineerModeActivity"],
       "whenPackageExists": "com.sprd.engineermode",
+      "silent": true,
       "timeoutSeconds": 15
     },
     {
       "id": "oem-hisense-factory-log",
-      "category": "日志入口",
+      "category": "日志管理",
       "title": "打开 Hisense 工厂日志上传",
       "args": ["shell", "monkey", "-p", "com.hmct.factorylogupload", "-c", "android.intent.category.LAUNCHER", "1"],
       "whenPackageExists": "com.hmct.factorylogupload",
+      "silent": true,
       "timeoutSeconds": 20
     },
     {
       "id": "export-logs",
-      "category": "日志入口",
-      "title": "导出 logcat 并压缩",
+      "category": "日志管理",
+      "title": "导出日志包并压缩",
+      "description": "logcat + bugreport + MTK/展讯/高通平台日志目录 → 型号_日期.zip",
       "kind": "export-logs",
-      "timeoutSeconds": 180
-    },
-    {
-      "id": "bugreport",
-      "category": "日志入口",
-      "title": "导出 bugreport",
-      "kind": "bugreport",
       "timeoutSeconds": 900
     },
     {
       "id": "airplane-on",
-      "category": "Settings",
+      "category": "设置菜单",
       "title": "打开飞行模式",
       "args": ["shell", "cmd", "connectivity", "airplane-mode", "enable"],
       "dangerous": true,
+      "silent": true,
       "timeoutSeconds": 15
     },
     {
       "id": "airplane-off",
-      "category": "Settings",
+      "category": "设置菜单",
       "title": "关闭飞行模式",
       "args": ["shell", "cmd", "connectivity", "airplane-mode", "disable"],
+      "silent": true,
       "timeoutSeconds": 15
     },
     {
-      "id": "wifi-on",
-      "category": "Settings",
-      "title": "打开 Wi‑Fi",
-      "args": ["shell", "svc", "wifi", "enable"],
+      "id": "open-developer-options",
+      "category": "设置菜单",
+      "title": "打开开发者选项",
+      "args": ["shell", "am", "start", "-a", "android.settings.APPLICATION_DEVELOPMENT_SETTINGS"],
+      "silent": true,
       "timeoutSeconds": 15
     },
     {
-      "id": "wifi-off",
-      "category": "Settings",
-      "title": "关闭 Wi‑Fi",
-      "args": ["shell", "svc", "wifi", "disable"],
-      "dangerous": true,
+      "id": "open-about-phone",
+      "category": "设置菜单",
+      "title": "打开关于手机",
+      "args": ["shell", "am", "start", "-a", "android.settings.DEVICE_INFO_SETTINGS"],
+      "silent": true,
       "timeoutSeconds": 15
     },
     {
-      "id": "bt-on",
-      "category": "Settings",
-      "title": "打开蓝牙",
-      "args": ["shell", "svc", "bluetooth", "enable"],
-      "timeoutSeconds": 15
-    },
-    {
-      "id": "bt-off",
-      "category": "Settings",
-      "title": "关闭蓝牙",
-      "args": ["shell", "svc", "bluetooth", "disable"],
-      "dangerous": true,
+      "id": "open-settings",
+      "category": "设置菜单",
+      "title": "打开系统设置",
+      "args": ["shell", "am", "start", "-a", "android.settings.SETTINGS"],
+      "silent": true,
       "timeoutSeconds": 15
     },
     {
       "id": "open-display-settings",
-      "category": "Settings",
+      "category": "设置菜单",
       "title": "打开显示设置",
       "args": ["shell", "am", "start", "-a", "android.settings.DISPLAY_SETTINGS"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "open-language-settings",
+      "category": "设置菜单",
+      "title": "打开语言设置",
+      "args": ["shell", "am", "start", "-a", "android.settings.LOCALE_SETTINGS"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "open-datetime-settings",
+      "category": "设置菜单",
+      "title": "打开日期和时间",
+      "args": ["shell", "am", "start", "-a", "android.settings.DATE_SETTINGS"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "anim-off",
+      "category": "现场条件",
+      "title": "关闭动画",
+      "description": "窗口、过渡、动画时长都设为 0。",
+      "args": ["shell", "settings put global window_animation_scale 0; settings put global transition_animation_scale 0; settings put global animator_duration_scale 0"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "anim-on",
+      "category": "现场条件",
+      "title": "恢复动画",
+      "description": "窗口、过渡、动画时长都恢复为 1。",
+      "args": ["shell", "settings put global window_animation_scale 1; settings put global transition_animation_scale 1; settings put global animator_duration_scale 1"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "show-touches-on",
+      "category": "现场条件",
+      "title": "显示触摸",
+      "description": "settings put system show_touches 1",
+      "args": ["shell", "settings", "put", "system", "show_touches", "1"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "show-touches-off",
+      "category": "现场条件",
+      "title": "关闭触摸显示",
+      "description": "settings put system show_touches 0",
+      "args": ["shell", "settings", "put", "system", "show_touches", "0"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "pointer-on",
+      "category": "现场条件",
+      "title": "显示指针位置",
+      "description": "settings put system pointer_location 1",
+      "args": ["shell", "settings", "put", "system", "pointer_location", "1"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "pointer-off",
+      "category": "现场条件",
+      "title": "关闭指针位置",
+      "description": "settings put system pointer_location 0",
+      "args": ["shell", "settings", "put", "system", "pointer_location", "0"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "stay-on",
+      "category": "现场条件",
+      "title": "充电时常亮",
+      "description": "svc power stayon true",
+      "args": ["shell", "svc", "power", "stayon", "true"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "stay-off",
+      "category": "现场条件",
+      "title": "取消充电常亮",
+      "description": "svc power stayon false",
+      "args": ["shell", "svc", "power", "stayon", "false"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "finish-activities-on",
+      "category": "现场条件",
+      "title": "不保留活动",
+      "description": "always_finish_activities 1",
+      "args": ["shell", "settings", "put", "global", "always_finish_activities", "1"],
+      "dangerous": true,
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "finish-activities-off",
+      "category": "现场条件",
+      "title": "恢复保留活动",
+      "description": "always_finish_activities 0",
+      "args": ["shell", "settings", "put", "global", "always_finish_activities", "0"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "night-on",
+      "category": "现场条件",
+      "title": "打开深色模式",
+      "description": "cmd uimode night yes",
+      "args": ["shell", "cmd", "uimode", "night", "yes"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "night-off",
+      "category": "现场条件",
+      "title": "关闭深色模式",
+      "description": "cmd uimode night no",
+      "args": ["shell", "cmd", "uimode", "night", "no"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "battery-unplug",
+      "category": "现场条件",
+      "title": "模拟断开充电",
+      "description": "dumpsys battery unplug。离开前请恢复电量。",
+      "args": ["shell", "dumpsys", "battery", "unplug"],
+      "dangerous": true,
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "battery-level",
+      "category": "现场条件",
+      "title": "设置模拟电量",
+      "description": "dumpsys battery set level <1-100>。离开前请恢复电量。",
+      "args": ["shell", "dumpsys", "battery", "set", "level", "{level}"],
+      "dangerous": true,
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "battery-reset",
+      "category": "现场条件",
+      "title": "恢复真实电量",
+      "description": "dumpsys battery reset",
+      "args": ["shell", "dumpsys", "battery", "reset"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "doze-on",
+      "category": "现场条件",
+      "title": "强制 Doze",
+      "description": "dumpsys deviceidle force-idle",
+      "args": ["shell", "dumpsys", "deviceidle", "force-idle"],
+      "dangerous": true,
+      "silent": true,
+      "timeoutSeconds": 20
+    },
+    {
+      "id": "doze-off",
+      "category": "现场条件",
+      "title": "退出 Doze",
+      "description": "dumpsys deviceidle unforce",
+      "args": ["shell", "dumpsys", "deviceidle", "unforce"],
+      "silent": true,
+      "timeoutSeconds": 20
+    },
+    {
+      "id": "wifi-on",
+      "category": "现场条件",
+      "title": "打开 Wi-Fi",
+      "description": "svc wifi enable",
+      "args": ["shell", "svc", "wifi", "enable"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "wifi-off",
+      "category": "现场条件",
+      "title": "关闭 Wi-Fi",
+      "description": "svc wifi disable。无线调试会断开。",
+      "args": ["shell", "svc", "wifi", "disable"],
+      "dangerous": true,
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "data-on",
+      "category": "现场条件",
+      "title": "打开移动数据",
+      "description": "svc data enable",
+      "args": ["shell", "svc", "data", "enable"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "data-off",
+      "category": "现场条件",
+      "title": "关闭移动数据",
+      "description": "svc data disable",
+      "args": ["shell", "svc", "data", "disable"],
+      "dangerous": true,
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "bt-on",
+      "category": "现场条件",
+      "title": "打开蓝牙",
+      "description": "svc bluetooth enable",
+      "args": ["shell", "svc", "bluetooth", "enable"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "bt-off",
+      "category": "现场条件",
+      "title": "关闭蓝牙",
+      "description": "svc bluetooth disable",
+      "args": ["shell", "svc", "bluetooth", "disable"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "proxy-set",
+      "category": "现场条件",
+      "title": "设置 HTTP 代理",
+      "description": "settings put global http_proxy host:port",
+      "args": ["shell", "settings", "put", "global", "http_proxy", "{proxy}"],
+      "dangerous": true,
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "proxy-clear",
+      "category": "现场条件",
+      "title": "清除 HTTP 代理",
+      "description": "settings put global http_proxy :0",
+      "args": ["shell", "settings", "put", "global", "http_proxy", ":0"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "rotation-set",
+      "category": "现场条件",
+      "title": "固定屏幕方向",
+      "description": "关闭自动旋转并设置方向。0 竖屏，1 向左，2 倒置，3 向右。",
+      "args": ["shell", "settings put system accelerometer_rotation 0; settings put system user_rotation {rotation}"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "rotation-auto",
+      "category": "现场条件",
+      "title": "恢复自动旋转",
+      "description": "settings put system accelerometer_rotation 1",
+      "args": ["shell", "settings", "put", "system", "accelerometer_rotation", "1"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "font-normal",
+      "category": "现场条件",
+      "title": "字体恢复 1.0",
+      "description": "settings put system font_scale 1.0",
+      "args": ["shell", "settings", "put", "system", "font_scale", "1.0"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "font-large",
+      "category": "现场条件",
+      "title": "字体放大 1.3",
+      "description": "settings put system font_scale 1.3",
+      "args": ["shell", "settings", "put", "system", "font_scale", "1.3"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "am-force-stop",
+      "category": "应用",
+      "title": "强制停止",
+      "description": "从应用列表选择后 am force-stop。",
+      "args": ["shell", "am", "force-stop", "{package}"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "pm-path",
+      "category": "应用",
+      "title": "查 APK 路径",
+      "description": "从应用列表选择后 pm path。",
+      "args": ["shell", "pm", "path", "{package}"],
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "pm-clear",
+      "category": "应用",
+      "title": "清除数据",
+      "description": "从应用列表选择后 pm clear。",
+      "args": ["shell", "pm", "clear", "{package}"],
+      "dangerous": true,
+      "silent": true,
+      "timeoutSeconds": 30
+    },
+    {
+      "id": "pm-list-third",
+      "category": "应用",
+      "title": "列出第三方包",
+      "description": "pm list packages -3",
+      "args": ["shell", "pm", "list", "packages", "-3"],
+      "timeoutSeconds": 20
+    },
+    {
+      "id": "key-home",
+      "category": "显示按键",
+      "title": "回到桌面",
+      "description": "KEYCODE_HOME",
+      "args": ["shell", "input", "keyevent", "KEYCODE_HOME"],
+      "silent": true,
+      "timeoutSeconds": 10
+    },
+    {
+      "id": "key-back",
+      "category": "显示按键",
+      "title": "返回键",
+      "description": "KEYCODE_BACK",
+      "args": ["shell", "input", "keyevent", "KEYCODE_BACK"],
+      "silent": true,
+      "timeoutSeconds": 10
+    },
+    {
+      "id": "key-recents",
+      "category": "显示按键",
+      "title": "最近任务",
+      "description": "KEYCODE_APP_SWITCH",
+      "args": ["shell", "input", "keyevent", "KEYCODE_APP_SWITCH"],
+      "silent": true,
+      "timeoutSeconds": 10
+    },
+    {
+      "id": "key-power",
+      "category": "显示按键",
+      "title": "电源键",
+      "description": "KEYCODE_POWER",
+      "args": ["shell", "input", "keyevent", "KEYCODE_POWER"],
+      "silent": true,
+      "timeoutSeconds": 10
+    },
+    {
+      "id": "key-wakeup",
+      "category": "显示按键",
+      "title": "唤醒屏幕",
+      "description": "KEYCODE_WAKEUP",
+      "args": ["shell", "input", "keyevent", "KEYCODE_WAKEUP"],
+      "silent": true,
+      "timeoutSeconds": 10
+    },
+    {
+      "id": "wm-size",
+      "category": "显示按键",
+      "title": "查询分辨率",
+      "description": "wm size",
+      "args": ["shell", "wm", "size"],
+      "timeoutSeconds": 10
+    },
+    {
+      "id": "wm-density",
+      "category": "显示按键",
+      "title": "查询密度",
+      "description": "wm density",
+      "args": ["shell", "wm", "density"],
+      "timeoutSeconds": 10
+    },
+    {
+      "id": "wm-size-set",
+      "category": "显示按键",
+      "title": "设置分辨率",
+      "description": "临时覆盖分辨率，如 720x1440。测完请重置。",
+      "args": ["shell", "wm", "size", "{size}"],
+      "dangerous": true,
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "wm-size-reset",
+      "category": "显示按键",
+      "title": "重置分辨率",
+      "description": "wm size reset",
+      "args": ["shell", "wm", "size", "reset"],
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "wm-density-set",
+      "category": "显示按键",
+      "title": "设置密度",
+      "description": "临时覆盖 DPI。测完请重置。",
+      "args": ["shell", "wm", "density", "{density}"],
+      "dangerous": true,
+      "silent": true,
+      "timeoutSeconds": 15
+    },
+    {
+      "id": "wm-density-reset",
+      "category": "显示按键",
+      "title": "重置密度",
+      "description": "wm density reset",
+      "args": ["shell", "wm", "density", "reset"],
+      "silent": true,
       "timeoutSeconds": 15
     },
     {
       "id": "monkey-app",
       "category": "Monkey",
       "title": "应用 Monkey（按时长）",
+      "description": "从全部应用中选择，有图标的排在前面。",
       "kind": "monkey-app",
       "dangerous": true,
       "timeoutSeconds": 3600
@@ -128,18 +627,12 @@
       "timeoutSeconds": 3600
     },
     {
-      "id": "am-force-stop",
-      "category": "am·pm",
-      "title": "强制停止包名",
-      "kind": "am-force-stop",
+      "id": "monkey-stop",
+      "category": "Monkey",
+      "title": "停止 Monkey",
+      "description": "结束设备上正在运行的 Monkey，包括不是本次启动的任务。",
+      "kind": "monkey-stop",
       "timeoutSeconds": 20
-    },
-    {
-      "id": "pm-path",
-      "category": "am·pm",
-      "title": "查询 APK 路径",
-      "kind": "pm-path",
-      "timeoutSeconds": 15
     }
   ],
   "consoleChips": [
@@ -151,6 +644,12 @@
     { "id": "logcat-clear", "title": "logcat -c", "line": "logcat -c" },
     { "id": "adb-root", "title": "adb root", "line": "root", "requiresUserdebug": true, "dangerous": true },
     { "id": "adb-remount", "title": "adb remount", "line": "remount", "requiresUserdebug": true, "dangerous": true },
-    { "id": "avbctl", "title": "avbctl disable-verification", "line": "shell avbctl disable-verification", "requiresRoot": true, "dangerous": true }
+    { "id": "avbctl", "title": "avbctl disable-verification", "line": "shell avbctl disable-verification", "requiresRoot": true, "dangerous": true },
+    { "id": "reboot", "title": "重启", "line": "reboot", "dangerous": true },
+    { "id": "reboot-bootloader", "title": "重启到 Bootloader", "line": "reboot bootloader", "dangerous": true },
+    { "id": "tcpip-5555", "title": "tcpip 5555", "line": "tcpip 5555", "dangerous": true },
+    { "id": "logcat-radio", "title": "logcat radio", "line": "logcat -b radio -d" },
+    { "id": "logcat-events", "title": "logcat events", "line": "logcat -b events -d" },
+    { "id": "dmesg", "title": "dmesg", "line": "shell dmesg", "requiresRoot": true }
   ]
 }

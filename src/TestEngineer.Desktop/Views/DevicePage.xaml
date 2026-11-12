@@ -97,28 +97,39 @@
             <TextBlock Grid.Row="1" Grid.Column="2" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="分辨率" />
             <TextBlock Grid.Row="1" Grid.Column="3" Margin="0,0,0,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.Resolution}" />
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="内核" />
-            <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,0,12,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.Kernel, Converter={StaticResource Dash}}" />
-            <TextBlock Grid.Row="2" Grid.Column="2" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="基带" />
-            <TextBlock Grid.Row="2" Grid.Column="3" Margin="0,0,0,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.Baseband, Converter={StaticResource Dash}}" TextWrapping="Wrap" />
+            <!-- 内核 / 基带常较长：独占整行并允许换行，避免半宽列截断 -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,0,8" VerticalAlignment="Top"
+                       FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="内核" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,0,0,8"
+                       FontSize="12" FontFamily="Cascadia Mono, Consolas"
+                       Text="{Binding Snapshot.Kernel, Converter={StaticResource Dash}}"
+                       TextWrapping="Wrap" />
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="安全补丁" />
-            <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,0,12,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.SecurityPatch, Converter={StaticResource Dash}}" />
-            <TextBlock Grid.Row="3" Grid.Column="2" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="CPU" />
-            <TextBlock Grid.Row="3" Grid.Column="3" Margin="0,0,0,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.CpuModel, Converter={StaticResource Dash}}" />
+            <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,0,8" VerticalAlignment="Top"
+                       FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="基带" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,0,0,8"
+                       FontSize="12" FontFamily="Cascadia Mono, Consolas"
+                       Text="{Binding Snapshot.Baseband, Converter={StaticResource Dash}}"
+                       TextWrapping="Wrap" />
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="网络类型" />
-            <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,0,12,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.NetworkType, Converter={StaticResource Dash}}" />
-            <TextBlock Grid.Row="4" Grid.Column="2" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="IP" />
-            <TextBlock Grid.Row="4" Grid.Column="3" Margin="0,0,0,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.IpAddress, Converter={StaticResource Dash}}" />
+            <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="安全补丁" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,0,12,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.SecurityPatch, Converter={StaticResource Dash}}" />
+            <TextBlock Grid.Row="4" Grid.Column="2" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="CPU" />
+            <TextBlock Grid.Row="4" Grid.Column="3" Margin="0,0,0,8" FontSize="12" FontFamily="Cascadia Mono, Consolas"
+                       Text="{Binding Snapshot.CpuModel, Converter={StaticResource Dash}}" TextWrapping="Wrap" />
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="Wi‑Fi SSID" />
-            <TextBlock Grid.Row="5" Grid.Column="1" Margin="0,0,12,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.WifiSsid, Converter={StaticResource Dash}}" />
-            <TextBlock Grid.Row="5" Grid.Column="2" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="Wi‑Fi MAC" />
-            <TextBlock Grid.Row="5" Grid.Column="3" Margin="0,0,0,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.WifiMac, Converter={StaticResource Dash}}" />
+            <TextBlock Grid.Row="5" Grid.Column="0" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="网络类型" />
+            <TextBlock Grid.Row="5" Grid.Column="1" Margin="0,0,12,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.NetworkType, Converter={StaticResource Dash}}" />
+            <TextBlock Grid.Row="5" Grid.Column="2" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="IP" />
+            <TextBlock Grid.Row="5" Grid.Column="3" Margin="0,0,0,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.IpAddress, Converter={StaticResource Dash}}" />
 
-            <TextBlock Grid.Row="6" Grid.Column="0" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="运行时间" />
-            <TextBlock Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,0,0,8" FontFamily="Cascadia Mono, Consolas"
+            <TextBlock Grid.Row="6" Grid.Column="0" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="Wi‑Fi SSID" />
+            <TextBlock Grid.Row="6" Grid.Column="1" Margin="0,0,12,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.WifiSsid, Converter={StaticResource Dash}}" />
+            <TextBlock Grid.Row="6" Grid.Column="2" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="Wi‑Fi MAC" />
+            <TextBlock Grid.Row="6" Grid.Column="3" Margin="0,0,0,8" FontSize="12" FontFamily="Cascadia Mono, Consolas" Text="{Binding Snapshot.WifiMac, Converter={StaticResource Dash}}" />
+
+            <TextBlock Grid.Row="7" Grid.Column="0" Margin="0,0,0,8" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Text="运行时间" />
+            <TextBlock Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,0,0,8" FontFamily="Cascadia Mono, Consolas"
                        FontSize="20" FontWeight="SemiBold" Text="{Binding UptimeText}" />
           </Grid>
         </Border>

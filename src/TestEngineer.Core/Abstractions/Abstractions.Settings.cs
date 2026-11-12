@@ -29,5 +29,8 @@ public interface IConsoleHistory
 
     void Add(string commandLine);
 
+    /// <summary>移除与 <paramref name="commandLine"/> 相等的最近一条；找不到则无操作。</summary>
+    bool Remove(string commandLine);
+
     void Clear();
 }

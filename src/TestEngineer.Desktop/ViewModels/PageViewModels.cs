@@ -91,9 +91,10 @@ public sealed partial class DevicePageViewModel : ObservableObject
 public sealed partial class CastPageViewModel : ObservableObject
 {
     [ObservableProperty] private string _hint = "右侧常驻画面 · 本页仅参数；右侧工具栏也可启停。";
-    [ObservableProperty] private int _maxSize = 1280;
+    /// <summary>0 = 不限制（按设备分辨率）；大于 0 时传给 scrcpy --max-size。</summary>
+    [ObservableProperty] private int _maxSize;
     [ObservableProperty] private int _bitRate = 8_000_000;
-    [ObservableProperty] private int _maxFps = 60;
+    [ObservableProperty] private int _maxFps = 30;
     [ObservableProperty] private bool _stayAwake = true;
     [ObservableProperty] private bool _turnScreenOff;
     [ObservableProperty] private string _recordDirectory =
@@ -140,14 +141,19 @@ public sealed partial class CastPageViewModel : ObservableObject
         return System.IO.Path.Combine(RecordDirectory, $"mirror-{id}-{DateTime.Now:yyyyMMdd-HHmmss}.mp4");
     }
 
-    public MirrorOptions ToOptions(string? recordPath = null) => new()
+    public MirrorOptions ToOptions(string? recordPath = null, int windowWidth = 0, int windowHeight = 0) => new()
     {
-        MaxSize = MaxSize is > 0 and <= 4096 ? MaxSize : 1280,
+        MaxSize = MaxSize is > 0 and <= 8192 ? MaxSize : 0,
         BitRate = BitRate is > 0 ? BitRate : 8_000_000,
-        MaxFps = MaxFps is > 0 and <= 120 ? MaxFps : 60,
+        MaxFps = MaxFps is > 0 and <= 120 ? MaxFps : 30,
         StayAwake = StayAwake,
         TurnScreenOff = TurnScreenOff,
         Borderless = true,
+        NoAudio = true,
+        // 过低缓冲易花屏；过高会拖慢滑动手势手感
+        VideoBufferMs = 30,
+        WindowWidth = windowWidth,
+        WindowHeight = windowHeight,
         RecordPath = recordPath,
     };
 }
@@ -162,7 +168,8 @@ public sealed partial class AboutPageViewModel : ObservableObject
         _settings = settings;
         _theme = theme;
         SelectedTheme = settings.Current.Theme;
-        VersionText = typeof(AboutPageViewModel).Assembly.GetName().Version?.ToString() ?? "0.1.0";
+        var version = typeof(AboutPageViewModel).Assembly.GetName().Version;
+        VersionText = version is null ? "0.1.7" : $"{version.Major}.{version.Minor}.{Math.Max(version.Build, 0)}";
     }
 
     public ObservableCollection<AppThemeMode> Themes { get; } =

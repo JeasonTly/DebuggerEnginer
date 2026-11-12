@@ -76,8 +76,9 @@ public final class AppInfoDump {
         boolean hasLauncher = pm.getLaunchIntentForPackage(pi.packageName) != null
                 || hasLauncherActivity(pm, pi.packageName);
 
+        // 仅桌面入口应用拉图标；无 Launcher 的包 getApplicationIcon 也会返回默认图，会造成「有图标」筛出全部。
         String icon = "-";
-        if (withIcons) {
+        if (withIcons && hasLauncher) {
             try {
                 icon = encodeIcon(pm.getApplicationIcon(ai));
             } catch (Throwable ignored) {

@@ -57,7 +57,7 @@
               <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,6" Height="32"
                        VerticalContentAlignment="Center" Padding="8,0"
                        Text="{Binding MaxSize, UpdateSourceTrigger=PropertyChanged}"
-                       ToolTip="scrcpy --max-size；重启会话生效" />
+                       ToolTip="scrcpy --max-size；0=按设备分辨率不限制；重启会话生效" />
 
               <TextBlock Grid.Row="1" VerticalAlignment="Center" FontSize="12"
                          Foreground="{DynamicResource Brush.TextSecondary}" Text="码率" />
@@ -140,9 +140,10 @@
               <Button Content="目录" Margin="0,0,8,0" Style="{StaticResource Button.Secondary}"
                       Command="{Binding PickRecordDirectoryCommand}"
                       AutomationProperties.Name="选择录屏目录" />
-              <Button Content="开始录屏" Style="{StaticResource Button.Primary}"
+              <Button Content="{Binding DataContext.RecordActionLabel, RelativeSource={RelativeSource AncestorType=Window}}"
+                      Style="{StaticResource Button.Primary}"
                       Command="{Binding DataContext.StartMirrorRecordCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                      AutomationProperties.Name="开始录屏" />
+                      AutomationProperties.Name="{Binding DataContext.RecordActionLabel, RelativeSource={RelativeSource AncestorType=Window}}" />
             </StackPanel>
           </StackPanel>
         </Border>

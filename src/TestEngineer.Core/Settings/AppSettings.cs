@@ -1,3 +1,5 @@
+using TestEngineer.Core.Apk;
+
 namespace TestEngineer.Core.Settings;
 
 public enum AppThemeMode
@@ -37,4 +39,7 @@ public sealed class AppSettings
 
     /// <summary>上次选中的设备序列号，启动时优先恢复。</summary>
     public string? LastDeviceSerial { get; set; }
+
+    /// <summary>重新签名用过的签名文件，最近使用的在前。密码字段是本机保护后的内容。</summary>
+    public List<SigningProfile> SigningProfiles { get; set; } = [];
 }

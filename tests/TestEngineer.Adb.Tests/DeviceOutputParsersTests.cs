@@ -77,6 +77,19 @@ public sealed class DeviceOutputParsersTests
     }
 
     [Fact]
+    public void Wm_ParseRotationAndApply()
+    {
+        Assert.Equal(1, WmParser.ParseRotation("mCurrentRotation=1"));
+        Assert.Equal(3, WmParser.ParseRotation("mDisplayRotation: ROTATION_3"));
+        Assert.Equal(0, WmParser.ParseRotation("SurfaceOrientation: 0"));
+        Assert.Null(WmParser.ParseRotation("no rotation here"));
+
+        Assert.Equal((1440, 720), WmParser.ApplyRotation((720, 1440), 1));
+        Assert.Equal((720, 1440), WmParser.ApplyRotation((720, 1440), 0));
+        Assert.Equal((1440, 720), WmParser.ApplyRotation((720, 1440), 3));
+    }
+
+    [Fact]
     public void CpuInfo_RealDevice_CountsCoresAndReadsHardware()
     {
         var cpu = CpuInfoParser.Parse(Fixture.Read("DSJ-cpuinfo.txt"));
@@ -196,5 +209,37 @@ public sealed class DeviceOutputParsersTests
         Assert.True(byName["android.permission.CAMERA"].IsRuntime);
         Assert.False(byName["android.permission.ACCESS_FINE_LOCATION"].Granted);
         Assert.Null(byName["com.example.demo.permission.PRIVATE"].Granted);
+    }
+}
+
+public sealed class ForegroundComponentParserTests
+{
+    [Fact]
+    public void Format_PrefersResumedActivityAndExpandsRelativeClass()
+    {
+        const string output = """
+            mCurrentFocus=Window{a u0 com.android.systemui/com.android.systemui.wallpapers.ImageWallpaper}
+            mResumedActivity: ActivityRecord{53d3a48 u0 com.android.settings/.Settings t92}
+            """;
+
+        var text = ForegroundComponentParser.Format(output);
+
+        Assert.Equal($"包名  com.android.settings{Environment.NewLine}组件  com.android.settings.Settings", text);
+    }
+
+    [Fact]
+    public void Format_UsesFocusWhenResumeMissing()
+    {
+        const string output = "mCurrentFocus=Window{abc u0 com.example.app/com.example.app.MainActivity}";
+
+        var text = ForegroundComponentParser.Format(output);
+
+        Assert.Contains("com.example.app.MainActivity", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Format_Empty_SaysNotFound()
+    {
+        Assert.Equal("未找到前台 Activity", ForegroundComponentParser.Format("no activity here"));
     }
 }

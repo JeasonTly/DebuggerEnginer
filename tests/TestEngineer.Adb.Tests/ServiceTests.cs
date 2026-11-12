@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using TestEngineer.Core.Abstractions;
 using TestEngineer.Core.Models;
 using TestEngineer.Core.Settings;
@@ -80,6 +81,228 @@ public sealed class FileManagerServiceTests
     }
 
     [Fact]
+    public async Task PushAsync_Directory_UsesFullRemotePathForChineseNames()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "te-push-" + Guid.NewGuid().ToString("N"));
+        var nested = Path.Combine(root, "样本夹", "子目录");
+        Directory.CreateDirectory(nested);
+        var note = Path.Combine(root, "样本夹", "说明.txt");
+        var nestedNote = Path.Combine(nested, "笔记.txt");
+        await File.WriteAllTextAsync(note, "甲");
+        await File.WriteAllTextAsync(nestedNote, "乙");
+        try
+        {
+            var runner = new FakeAdbRunner().When(_ => true, _ => new AdbCommandResult(0, string.Empty, string.Empty));
+            var service = new FileManagerService(runner);
+
+            var folder = Path.Combine(root, "样本夹");
+            var result = await service.PushAsync("S1", folder, "/sdcard/Download");
+
+            Assert.True(result.Succeeded, result.FailureMessage);
+            var push = Assert.Single(runner.Calls, call => call.Args[0] == "push");
+            Assert.Equal(folder, push.Args[1]);
+            Assert.StartsWith("/data/local/tmp/te-push-", push.Args[2], StringComparison.Ordinal);
+            Assert.Contains(
+                runner.Calls,
+                call => call.Args[0] == "shell" && call.Args[1].Contains("cp -a ", StringComparison.Ordinal) && call.Args[1].Contains("'/sdcard/Download/样本夹'", StringComparison.Ordinal));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task PushAsync_Directory_ShortensPathsAdbCannotStat()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "te-long-" + Guid.NewGuid().ToString("N"));
+        var folder = Path.Combine(root, "pack");
+        var deep = Path.Combine(folder, new string('a', 180));
+        Directory.CreateDirectory(deep);
+        await File.WriteAllTextAsync(Path.Combine(deep, "n.txt"), "x");
+        try
+        {
+            var runner = new FakeAdbRunner().When(_ => true, _ => new AdbCommandResult(0, string.Empty, string.Empty));
+            var service = new FileManagerService(runner);
+
+            var result = await service.PushAsync("S1", folder, "/sdcard/Download");
+
+            Assert.True(result.Succeeded, result.FailureMessage);
+            var push = Assert.Single(runner.Calls, call => call.Args[0] == "push");
+            Assert.NotEqual(folder, push.Args[1]);
+            Assert.True(push.Args[1].Length < 240 || push.Args[1].EndsWith(".tar", StringComparison.OrdinalIgnoreCase), push.Args[1]);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task PullAsync_Directory_StagesWhenLocalPathIsNotAscii()
+    {
+        const string remote = "/sdcard/文档";
+        var root = Path.Combine(Path.GetTempPath(), "te-pull-" + Guid.NewGuid().ToString("N"));
+        var local = Path.Combine(root, "文档");
+        var runner = new FakeAdbRunner()
+            .WhenShellContains("[ -d '/sdcard/文档' ]", "dir")
+            .When(args => args[0] == "shell", _ => new AdbCommandResult(0, string.Empty, string.Empty))
+            .When(args => args[0] == "pull", args =>
+            {
+                Directory.CreateDirectory(Path.Combine(args[2], "子目录"));
+                File.WriteAllText(Path.Combine(args[2], "说明.txt"), "说明");
+                File.WriteAllText(Path.Combine(args[2], "子目录", "笔记.txt"), "笔记");
+                return new AdbCommandResult(0, string.Empty, string.Empty);
+            });
+        var service = new FileManagerService(runner);
+
+        try
+        {
+            var result = await service.PullAsync("S1", remote, local);
+
+            Assert.True(result.Succeeded, result.FailureMessage);
+            Assert.Equal("说明", await File.ReadAllTextAsync(Path.Combine(local, "说明.txt")));
+            Assert.Equal("笔记", await File.ReadAllTextAsync(Path.Combine(local, "子目录", "笔记.txt")));
+            var pull = Assert.Single(runner.Calls, call => call.Args[0] == "pull");
+            Assert.StartsWith("/data/local/tmp/te-pull-", pull.Args[1], StringComparison.Ordinal);
+            Assert.True(pull.Args[2].All(ch => ch <= 127), pull.Args[2]);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task PullAsync_Directory_RepacksWhenAdbCannotCreateLongLocalPath()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "te-tar-pull-" + Guid.NewGuid().ToString("N"));
+        var seedDir = Path.Combine(root, "seed");
+        var folder = Path.Combine(seedDir, "longdir");
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "a.txt"), "z");
+        var seedTar = Path.Combine(root, "seed.tar");
+        using (var pack = Process.Start(new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "tar.exe"))
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            ArgumentList = { "-cf", seedTar, "-C", seedDir, "longdir" },
+        }))
+        {
+            pack!.WaitForExit();
+            Assert.Equal(0, pack.ExitCode);
+        }
+
+        var local = Path.Combine(root, "out", "longdir");
+        var pulls = 0;
+        var runner = new FakeAdbRunner()
+            .WhenShellContains("[ -d '/sdcard/Download/longdir' ]", "dir")
+            .When(args => args[0] == "shell", _ => new AdbCommandResult(0, string.Empty, string.Empty))
+            .When(args => args[0] == "pull", args =>
+            {
+                pulls++;
+                if (args[2].EndsWith(".tar", StringComparison.OrdinalIgnoreCase))
+                {
+                    File.Copy(seedTar, args[2], overwrite: true);
+                    return new AdbCommandResult(0, string.Empty, string.Empty);
+                }
+
+                return new AdbCommandResult(1, string.Empty, "adb: error: cannot create 'C:\\Users\\Tuly\\Desktop\\long\\name.rgn1': Not a directory");
+            });
+        var service = new FileManagerService(runner);
+
+        try
+        {
+            var result = await service.PullAsync("S1", "/sdcard/Download/longdir", local);
+
+            Assert.True(result.Succeeded, result.FailureMessage);
+            Assert.Equal("z", await File.ReadAllTextAsync(Path.Combine(local, "a.txt")));
+            Assert.Equal(2, pulls);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task PullAsync_File_MovesAsciiStageIntoNonAsciiDirectory()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "te-pull-" + Guid.NewGuid().ToString("N"));
+        var local = Path.Combine(root, "mijicall无法收到语音包", "Debug_Log_EX281", "boot.log");
+        var runner = new FakeAdbRunner()
+            .WhenShellContains("[ -d '/sdcard/Debug_Log_EX281/boot.log' ]", "notdir")
+            .When(args => args[0] == "pull", args =>
+            {
+                File.WriteAllBytes(args[2], [1, 2, 3]);
+                return new AdbCommandResult(0, string.Empty, string.Empty);
+            });
+        var service = new FileManagerService(runner);
+
+        try
+        {
+            var result = await service.PullAsync("S1", "/sdcard/Debug_Log_EX281/boot.log", local);
+
+            Assert.True(result.Succeeded, result.FailureMessage);
+            Assert.Equal(new byte[] { 1, 2, 3 }, await File.ReadAllBytesAsync(local));
+            var pull = Assert.Single(runner.Calls, call => call.Args[0] == "pull");
+            Assert.Equal("/sdcard/Debug_Log_EX281/boot.log", pull.Args[1]);
+            Assert.True(pull.Args[2].All(ch => ch <= 127), pull.Args[2]);
+            Assert.NotEqual(local, pull.Args[2]);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task PullAsync_File_UsesLocalPathDirectlyWhenAscii()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "te-pull-" + Guid.NewGuid().ToString("N"));
+        var local = Path.Combine(root, "logs", "boot.log");
+        var runner = new FakeAdbRunner()
+            .WhenShellContains("[ -d '/sdcard/boot.log' ]", "notdir")
+            .When(args => args[0] == "pull", args =>
+            {
+                File.WriteAllText(args[2], "ok");
+                return new AdbCommandResult(0, string.Empty, string.Empty);
+            });
+        var service = new FileManagerService(runner);
+
+        try
+        {
+            var result = await service.PullAsync("S1", "/sdcard/boot.log", local);
+
+            Assert.True(result.Succeeded, result.FailureMessage);
+            Assert.Equal("ok", await File.ReadAllTextAsync(local));
+            if (local.All(ch => ch <= 127))
+            {
+                Assert.Contains(runner.Calls, call => call.Args[0] == "pull" && call.Args[1] == "/sdcard/boot.log" && call.Args[2] == local);
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public async Task PullToEvidenceZipAsync_WithoutPaths_Fails()
     {
         var service = new FileManagerService(new FakeAdbRunner());
@@ -117,10 +340,10 @@ public sealed class DebugAndConsoleTests
     public void Expand_UsesDefaultValueAndRequiresMissingParameters()
     {
         var size = DebugCommandCatalog.Default.Single(c => c.Id == "screen.size.set");
-        var pkg = DebugCommandCatalog.Default.Single(c => c.Id == "pm.path");
+        var mem = DebugCommandCatalog.Default.Single(c => c.Id == "dumpsys.meminfo");
 
         Assert.Equal("720x1440", DebugCommandCatalog.Expand(size, null)[^1]);
-        Assert.Throws<ArgumentException>(() => DebugCommandCatalog.Expand(pkg, null));
+        Assert.Throws<ArgumentException>(() => DebugCommandCatalog.Expand(mem, null));
     }
 
     [Fact]
@@ -158,6 +381,59 @@ public sealed class DebugAndConsoleTests
         Assert.True(killed);
         Assert.True(result.Command.Succeeded);
         Assert.Equal(1, result.CrashCount);
+    }
+
+    [Fact]
+    public async Task RunMonkeyAsync_OpensTargetAppBeforeStress()
+    {
+        var runner = new FakeAdbRunner().When(_ => true, args =>
+        {
+            var command = args.Count > 1 ? args[1] : string.Empty;
+            if (command.Contains("resolve-activity", StringComparison.Ordinal))
+            {
+                return new AdbCommandResult(0, "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false\ncom.android.calculator2/.Calculator\n", string.Empty);
+            }
+
+            if (command.Contains("dumpsys activity top", StringComparison.Ordinal))
+            {
+                return new AdbCommandResult(0, "ACTIVITY com.android.calculator2/.Calculator\n", string.Empty);
+            }
+
+            return new AdbCommandResult(0, "Starting: Intent { cmp=com.android.calculator2/.Calculator }\n", string.Empty);
+        });
+        var service = new DebugCommandService(runner);
+
+        var result = await service.RunMonkeyAsync("S1", new MonkeyOptions("com.android.calculator2", 1));
+
+        Assert.True(result.Command.Succeeded, result.Command.FailureMessage);
+        Assert.Contains("resolve-activity", runner.Calls[0].Args[1], StringComparison.Ordinal);
+        Assert.StartsWith("am start -n ", runner.Calls[1].Args[1], StringComparison.Ordinal);
+        Assert.Contains("'com.android.calculator2/.Calculator'", runner.Calls[1].Args[1], StringComparison.Ordinal);
+        Assert.Contains("dumpsys activity top", runner.Calls[2].Args[1], StringComparison.Ordinal);
+        Assert.StartsWith("monkey -p com.android.calculator2", runner.Calls[3].Args[1], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task RunMonkeyAsync_FailsWhenLauncherComponentMissing()
+    {
+        var runner = new FakeAdbRunner().When(_ => true, args =>
+        {
+            var command = args.Count > 1 ? args[1] : string.Empty;
+            if (command.Contains("resolve-activity", StringComparison.Ordinal))
+            {
+                return new AdbCommandResult(0, "No activity found\ncom.example.app/.Main;reboot\n", string.Empty);
+            }
+
+            return new AdbCommandResult(0, "should-not-run", string.Empty);
+        });
+        var service = new DebugCommandService(runner);
+
+        var result = await service.RunMonkeyAsync("S1", new MonkeyOptions("com.example.app", 1));
+
+        Assert.False(result.Command.Succeeded);
+        Assert.Contains("主入口", result.Command.FailureMessage, StringComparison.Ordinal);
+        Assert.DoesNotContain(runner.Calls, call => call.Args.Count > 1 && call.Args[1].Contains("am start", StringComparison.Ordinal));
+        Assert.DoesNotContain(runner.Calls, call => call.Args.Count > 1 && call.Args[1].StartsWith("monkey", StringComparison.Ordinal));
     }
 
     [Theory]
@@ -231,6 +507,8 @@ public sealed class DebugAndConsoleTests
 
         public void Add(string commandLine) => _items.Add(commandLine);
 
+        public bool Remove(string commandLine) => _items.Remove(commandLine);
+
         public void Clear() => _items.Clear();
     }
 
@@ -246,6 +524,21 @@ public sealed class DebugAndConsoleTests
             CancellationToken cancellationToken = default)
         {
             var command = arguments.Count > 1 ? arguments[1] : string.Empty;
+            if (command.Contains("resolve-activity", StringComparison.Ordinal))
+            {
+                return new AdbCommandResult(0, "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false\ncom.example.app/.Main\n", string.Empty);
+            }
+
+            if (command.StartsWith("am start", StringComparison.Ordinal))
+            {
+                return new AdbCommandResult(0, "Starting: Intent { cmp=com.example.app/.Main }\n", string.Empty);
+            }
+
+            if (command.Contains("dumpsys activity top", StringComparison.Ordinal))
+            {
+                return new AdbCommandResult(0, "ACTIVITY com.example.app/.Main\n", string.Empty);
+            }
+
             if (command.StartsWith("monkey", StringComparison.Ordinal))
             {
                 onStdout?.Invoke("// CRASH: com.example.app (pid 1234)");
@@ -435,6 +728,32 @@ public sealed class DebugCatalogTests
     }
 
     [Fact]
+    public void LoadFromJson_BindsKnownPlaceholdersAndPmClear()
+    {
+        const string json = """
+            {
+              "commands": [
+                { "id": "mem", "title": "内存", "args": ["shell", "dumpsys", "meminfo", "{package}"] },
+                { "id": "lvl", "title": "电量", "args": ["shell", "dumpsys battery set level {level}"], "dangerous": true },
+                { "id": "clr", "title": "清数据", "kind": "pm-clear" },
+                { "id": "rot", "title": "方向", "args": ["shell", "settings put system user_rotation {rotation}"],
+                  "parameters": [{ "name": "rotation", "label": "方向", "default": "0", "pattern": "^[0-3]$" }] }
+              ]
+            }
+            """;
+
+        var catalog = DebugCommandCatalog.LoadFromJson(json);
+
+        Assert.Equal("package", catalog.Commands[0].ParameterList[0].Name);
+        var level = catalog.Commands[1];
+        Assert.Equal("15", DebugCommandCatalog.Expand(level, null)[1].Split(' ')[^1]);
+        Assert.Equal(["shell", "pm", "clear", "{package}"], catalog.Commands[2].AdbArgs);
+        Assert.EndsWith("user_rotation 0", DebugCommandCatalog.Expand(catalog.Commands[3], null)[^1]);
+        Assert.Throws<ArgumentException>(() => DebugCommandCatalog.Expand(level, new Dictionary<string, string> { ["level"] = "0" }));
+        Assert.Throws<ArgumentException>(() => DebugCommandCatalog.Expand(level, new Dictionary<string, string> { ["level"] = "101" }));
+    }
+
+    [Fact]
     public void LoadDefault_MissingFile_FallsBackToBuiltIn()
     {
         var empty = Path.Combine(Path.GetTempPath(), "TestEngineer.Tests", Guid.NewGuid().ToString("N"));
@@ -452,6 +771,17 @@ public sealed class DebugCatalogTests
 
         Assert.NotEmpty(catalog.Commands);
         Assert.Equal(catalog.Commands.Count, catalog.Commands.Select(c => c.Id).Distinct().Count());
+        Assert.Contains(catalog.Commands, c => c.Id == "foreground-now");
+        Assert.Contains(catalog.Commands, c => c.Id == "battery-reset");
+        Assert.Contains(catalog.Commands, c => c.Id == "pm-clear" && c.IsDangerous);
+        Assert.Equal("package", catalog.Commands.Single(c => c.Id == "meminfo").ParameterList[0].Name);
+        Assert.Contains(catalog.ConsoleChips, c => c.Id == "reboot" && c.IsDangerous);
+        Assert.Contains(catalog.ConsoleChips, c => c.Id == "dmesg" && c.RequiresRoot);
+        Assert.True(catalog.Commands.Single(c => c.Id == "key-home").SilentResult);
+        Assert.True(catalog.Commands.Single(c => c.Id == "open-settings").SilentResult);
+        Assert.True(catalog.Commands.Single(c => c.Id == "anim-off").SilentResult);
+        Assert.False(catalog.Commands.Single(c => c.Id == "wm-density").SilentResult);
+        Assert.False(catalog.Commands.Single(c => c.Id == "top-activity").SilentResult);
     }
 
     [Fact]

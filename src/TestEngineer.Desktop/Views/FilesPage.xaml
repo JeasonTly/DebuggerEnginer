@@ -1,130 +1,516 @@
 <UserControl x:Class="TestEngineer.Desktop.Views.FilesPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:TestEngineer.Desktop.Converters"
              AllowDrop="True"
              Drop="OnDrop"
              DragOver="OnDragOver"
              Loaded="OnLoaded">
   <UserControl.Resources>
     <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    <conv:StringEqualsConverter x:Key="StrEq" />
+
+    <!-- 入口根按钮：默认透明；当前项 AccentMuted + AccentText + Accent 边框 -->
+    <Style x:Key="RootEntryButton" TargetType="Button">
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="VerticalContentAlignment" Value="Top" />
+      <Setter Property="Padding" Value="10" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="bd" Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="6" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+              <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="{DynamicResource Brush.Raised}" />
+        </Trigger>
+        <Trigger Property="Selector.IsSelected" Value="True">
+          <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+          <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+          <Setter Property="Foreground" Value="{DynamicResource Brush.AccentText}" />
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="FileRowItem" TargetType="ListBoxItem">
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListBoxItem">
+            <Border x:Name="bd" Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                    Padding="10,7" Opacity="{TemplateBinding Opacity}">
+              <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+        </Trigger>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+        </Trigger>
+        <DataTrigger Binding="{Binding CanInteract}" Value="False">
+          <Setter Property="Opacity" Value="0.65" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+          <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <!-- 14×14 勾选框：深色主题下系统 CheckBox 会画成残缺括号，改自定义；强制在单元格内居中 -->
+    <Style x:Key="FileCheckBox" TargetType="CheckBox">
+      <Setter Property="Width" Value="14" />
+      <Setter Property="Height" Value="14" />
+      <Setter Property="MinWidth" Value="14" />
+      <Setter Property="MinHeight" Value="14" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Focusable" Value="False" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CheckBox">
+            <Grid Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Border x:Name="box" Width="14" Height="14" CornerRadius="2"
+                      BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                      Background="{DynamicResource Brush.Raised}" SnapsToDevicePixels="True"
+                      HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Path x:Name="mark" Data="M2.5,7 L5.5,10 L11.5,3.5" Stretch="None"
+                      Stroke="{DynamicResource Brush.Accent}" StrokeThickness="1.6"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                      Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="mark" Property="Visibility" Value="Visible" />
+                <Setter TargetName="box" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                <Setter TargetName="box" Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+              </Trigger>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="box" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.4" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- 权限标签 -->
+    <Style x:Key="AccessTag" TargetType="Border">
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="4,1" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding AccessKind}" Value="rw">
+          <Setter Property="Background" Value="{DynamicResource Brush.SuccessBg}" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding AccessKind}" Value="r">
+          <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding AccessKind}" Value="none">
+          <Setter Property="Background" Value="{DynamicResource Brush.DangerBg}" />
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="AccessTagText" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="11" />
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding AccessKind}" Value="rw">
+          <Setter Property="Foreground" Value="{DynamicResource Brush.Success}" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding AccessKind}" Value="r">
+          <Setter Property="Foreground" Value="{DynamicResource Brush.AccentText}" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding AccessKind}" Value="none">
+          <Setter Property="Foreground" Value="{DynamicResource Brush.Danger}" />
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
   </UserControl.Resources>
+
+  <Grid>
   <DockPanel>
-    <Border DockPanel.Dock="Top" Padding="16,12,16,10" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
-      <DockPanel>
-        <StackPanel>
-          <TextBlock Text="文件管理" FontSize="22" FontWeight="SemiBold" />
-          <TextBlock Text="{Binding Status}" Margin="0,4,0,0" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" />
-          <TextBlock Text="{Binding ClipboardSummary}" Margin="0,2,0,0" FontSize="11" Foreground="{DynamicResource Brush.TextSecondary}" />
+    <!-- 页头 -->
+    <Border DockPanel.Dock="Top" Padding="16,12,16,10"
+            BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1"
+            Background="{DynamicResource Brush.Surface}">
+      <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Left" VerticalAlignment="Bottom" Margin="0,0,16,0">
+          <TextBlock Text="文件管理" Style="{StaticResource Text.PageTitle}" />
+          <TextBlock Text="跨目录累积多选 · 勾选后拖到资源管理器导出 · Ctrl+点击 · 右键操作"
+                     Style="{StaticResource Text.PageSubtitle}" />
         </StackPanel>
-        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-          <Button Content="缺陷证据包" Margin="0,0,8,0" Style="{StaticResource Button.Primary}" Command="{Binding ExportEvidencePackCommand}"
-                  ToolTip="截屏 + logcat + 设备摘要 + 已选远程文件 → ZIP" />
-          <Button Content="系统信息" Margin="0,0,8,0" Style="{StaticResource Button.Secondary}" Command="{Binding ExportSystemInfoCommand}"
-                  ToolTip="导出 DeviceSnapshot 为 UTF-8 txt（可选 zip）" />
-          <Button Content="导入" Margin="0,0,8,0" Style="{StaticResource Button.Secondary}" Command="{Binding ImportLocalCommand}" />
-          <Button Content="导出已选" Margin="0,0,8,0" Style="{StaticResource Button.Secondary}" Command="{Binding ExportSelectionCommand}" />
-          <Button Content="刷新" Style="{StaticResource Button.Secondary}" Command="{Binding RefreshCommand}" />
-        </StackPanel>
+        <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                   Orientation="Horizontal">
+          <Button Content="粘贴" Margin="0,0,8,0" Style="{StaticResource Button.Secondary}"
+                  Command="{Binding PasteCommand}"
+                  ToolTip="{Binding PasteToolTip}"
+                  AutomationProperties.Name="粘贴" />
+          <Button Content="新建" Margin="0,0,8,0" Style="{StaticResource Button.Secondary}"
+                  Command="{Binding CreateFolderCommand}"
+                  ToolTip="{Binding WriteToolTip}"
+                  AutomationProperties.Name="新建" />
+          <Button Content="上传" Margin="0,0,8,0" Style="{StaticResource Button.Secondary}"
+                  Command="{Binding ImportLocalCommand}"
+                  ToolTip="{Binding WriteToolTip}"
+                  AutomationProperties.Name="上传" />
+          <Button Content="清空选中" Margin="0,0,8,0" Style="{StaticResource Button.Secondary}"
+                  Command="{Binding ClearSelectionCommand}"
+                  AutomationProperties.Name="清空选中" />
+          <Button Content="导出选中" Style="{StaticResource Button.Primary}"
+                  Command="{Binding ExportSelectionCommand}"
+                  AutomationProperties.Name="导出选中" />
+        </WrapPanel>
       </DockPanel>
     </Border>
 
-    <Grid Margin="16">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="150" />
-        <ColumnDefinition Width="*" />
-      </Grid.ColumnDefinitions>
+    <!-- 页体 -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                  Padding="16,12,16,16">
+      <DockPanel LastChildFill="True" MinHeight="420">
+        <!-- IO 三卡（底） -->
+        <Grid DockPanel.Dock="Bottom" Margin="0,10,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Background="{DynamicResource Brush.Surface}"
+                  BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                  CornerRadius="6" Padding="12">
+            <StackPanel>
+              <TextBlock Text="导入" FontSize="12" FontWeight="SemiBold"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" />
+              <TextBlock Text="批量推送到当前可写目录" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" />
+              <Button Content="选择文件" Margin="0,8,0,0" HorizontalAlignment="Left"
+                      Style="{StaticResource Button.Primary}"
+                      Command="{Binding ImportLocalCommand}"
+                      ToolTip="{Binding WriteToolTip}"
+                      AutomationProperties.Name="选择文件" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="2" Background="{DynamicResource Brush.Surface}"
+                  BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                  CornerRadius="6" Padding="12">
+            <StackPanel>
+              <TextBlock Text="缺陷证据包" FontSize="12" FontWeight="SemiBold"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" />
+              <TextBlock Text="截图 + 录屏 + logcat → ZIP" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" />
+              <Button Content="导出证据包" Margin="0,8,0,0" HorizontalAlignment="Left"
+                      Style="{StaticResource Button.Primary}"
+                      Command="{Binding ExportEvidencePackCommand}"
+                      AutomationProperties.Name="导出证据包" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="4" Background="{DynamicResource Brush.Surface}"
+                  BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                  CornerRadius="6" Padding="12">
+            <StackPanel>
+              <TextBlock Text="系统信息" FontSize="12" FontWeight="SemiBold"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" />
+              <TextBlock Text="getprop / dumpsys 摘要导出（文件导出用右键或工具栏）" FontSize="12"
+                         Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" />
+              <Button Content="导出系统信息" Margin="0,8,0,0" HorizontalAlignment="Left"
+                      Style="{StaticResource Button.Secondary}"
+                      Command="{Binding ExportSystemInfoCommand}"
+                      AutomationProperties.Name="导出系统信息" />
+            </StackPanel>
+          </Border>
+        </Grid>
 
-      <StackPanel Grid.Column="0" Margin="0,0,10,0">
-        <Button Content="内部存储" Padding="10" Margin="0,0,0,4" HorizontalContentAlignment="Left" Height="32"
-                Command="{Binding UseSdcardCommand}" />
-        <Button Content="根目录 /" Padding="10" HorizontalContentAlignment="Left" Height="32"
-                Command="{Binding UseRootCommand}" />
-        <TextBlock Margin="0,12,0,0" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}"
-                   Text="{Binding SelectionSummary}" TextWrapping="Wrap" />
-        <Button Margin="0,8,0,0" Content="清空选择" Command="{Binding ClearSelectionCommand}" Padding="8,4" Height="28" />
-        <Button Margin="0,8,0,0" Content="粘贴到此" Command="{Binding PasteCommand}" Padding="8,4" Height="28" />
-        <Button Margin="0,12,0,0" Content="缺陷证据包" Command="{Binding ExportEvidencePackCommand}" Padding="8,4" Height="28"
-                ToolTip="无选中时仍含 screencap/logcat/摘要" />
-        <Button Margin="0,4,0,0" Content="系统信息" Command="{Binding ExportSystemInfoCommand}" Padding="8,4" Height="28" />
-        <TextBlock Margin="0,16,0,0" FontSize="11" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap"
-                   Text="可将本机文件拖入列表上传到当前目录。" />
-      </StackPanel>
-
-      <DockPanel Grid.Column="1">
-        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Breadcrumbs}" Margin="0,0,0,8">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="0,0,4,0">
-                <Button Content="{Binding Name}" Padding="4,0" BorderThickness="0" Background="Transparent"
-                        Foreground="{DynamicResource Brush.Accent}" Cursor="Hand"
-                        Command="{Binding DataContext.GoBreadcrumbCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                        CommandParameter="{Binding Path}" />
-                <TextBlock Text="/" Margin="2,0" Foreground="{DynamicResource Brush.TextSecondary}" />
-              </StackPanel>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-        <Border Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8">
-          <ListBox x:Name="FileList"
-                   ItemsSource="{Binding Entries}"
-                   SelectedItem="{Binding FocusedEntry}"
-                   BorderThickness="0" Background="Transparent"
-                   MouseDoubleClick="OnDoubleClick"
-                   PreviewMouseMove="OnListPreviewMouseMove"
-                   PreviewMouseLeftButtonDown="OnListPreviewMouseLeftButtonDown">
-            <ListBox.ContextMenu>
-              <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                <MenuItem Header="复制" Command="{Binding CopyCommand}"
-                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                <MenuItem Header="剪切" Command="{Binding CutCommand}"
-                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                <MenuItem Header="粘贴" Command="{Binding PasteCommand}" />
-                <Separator />
-                <MenuItem Header="删除" Command="{Binding DeleteCommand}"
-                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                <MenuItem Header="导出到目录…" Command="{Binding ExportSelectionCommand}" />
-                <MenuItem Header="进入目录" Command="{Binding EnterCommand}"
-                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-              </ContextMenu>
-            </ListBox.ContextMenu>
-            <ListBox.ItemTemplate>
-              <DataTemplate>
-                <Grid Margin="4,2">
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="28" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="90" />
-                    <ColumnDefinition Width="70" />
-                    <ColumnDefinition Width="100" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox VerticalAlignment="Center"
-                            Command="{Binding DataContext.ToggleSelectCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                            CommandParameter="{Binding}" />
-                  <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" />
-                  <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}"
-                             Text="{Binding Mode}" FontFamily="Cascadia Mono, Consolas" />
-                  <TextBlock Grid.Column="3" VerticalAlignment="Center" FontSize="12" Text="{Binding Size}" />
-                  <StackPanel Grid.Column="4" Orientation="Horizontal">
-                    <Border Padding="4,1" CornerRadius="4" Margin="0,0,4,0"
-                            Background="#291F7A4C" Visibility="{Binding CanWrite, Converter={StaticResource BoolToVis}}">
-                      <TextBlock Text="可写" FontSize="10" Foreground="{DynamicResource Brush.Success}" />
-                    </Border>
-                    <Button Content="进入" Padding="6,2" Visibility="{Binding IsDirectory, Converter={StaticResource BoolToVis}}"
-                            Command="{Binding DataContext.EnterCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                            CommandParameter="{Binding}" />
-                  </StackPanel>
-                </Grid>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
+        <!-- 选中条 -->
+        <Border DockPanel.Dock="Top" Margin="0,0,0,8" Padding="10,6"
+                Background="{DynamicResource Brush.AccentMuted}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                CornerRadius="6"
+                Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+          <DockPanel>
+            <Border DockPanel.Dock="Left" CornerRadius="4" Padding="6,2" Margin="0,0,8,0"
+                    Background="{DynamicResource Brush.Raised}" VerticalAlignment="Center">
+              <TextBlock Text="{Binding SelectionSummary}" FontSize="12"
+                         Foreground="{DynamicResource Brush.AccentText}" />
+            </Border>
+            <Button DockPanel.Dock="Right" Content="查看列表" Style="{StaticResource Button.Ghost}"
+                    Command="{Binding ViewSelectionCommand}"
+                    AutomationProperties.Name="查看列表" />
+            <TextBlock Text="{Binding SelectionPathsSummary}" FontSize="11"
+                       FontFamily="{StaticResource Font.Mono}"
+                       Foreground="{DynamicResource Brush.TextSecondary}"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                       ToolTip="{Binding SelectionPathsFull}" />
+          </DockPanel>
         </Border>
+
+        <!-- 剪贴板条（虚线边） -->
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,8"
+              Visibility="{Binding HasClipboard, Converter={StaticResource BoolToVis}}">
+          <Rectangle RadiusX="6" RadiusY="6"
+                     Stroke="{DynamicResource Brush.Border}" StrokeThickness="1"
+                     StrokeDashArray="3 2"
+                     Fill="{DynamicResource Brush.Surface}" />
+          <DockPanel Margin="10,6">
+            <Button DockPanel.Dock="Right" Content="清除剪贴板" Style="{StaticResource Button.Ghost}"
+                    Command="{Binding ClearClipboardCommand}"
+                    AutomationProperties.Name="清除剪贴板" />
+            <TextBlock Text="{Binding ClipboardSummary}" FontSize="12"
+                       Foreground="{DynamicResource Brush.TextSecondary}"
+                       VerticalAlignment="Center" />
+          </DockPanel>
+        </Grid>
+
+        <!-- 主体：150 | 1fr，间距 10 -->
+        <Grid MinHeight="280">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <!-- 入口栏 -->
+          <Border Grid.Column="0" Background="{DynamicResource Brush.Surface}"
+                  BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                  CornerRadius="6" Padding="12">
+            <StackPanel>
+              <TextBlock Text="入口" FontSize="12" FontWeight="SemiBold"
+                         Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" />
+              <Button Style="{StaticResource RootEntryButton}"
+                      Command="{Binding UseSdcardCommand}"
+                      Selector.IsSelected="{Binding RootMode, Converter={StaticResource StrEq}, ConverterParameter=sdcard, Mode=OneWay}"
+                      AutomationProperties.Name="内部存储">
+                <StackPanel>
+                  <TextBlock Text="内部存储" FontSize="14" TextWrapping="Wrap"
+                             Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                  <TextBlock Text="/sdcard" FontSize="11" Margin="0,2,0,0" TextWrapping="Wrap"
+                             Foreground="{DynamicResource Brush.TextSecondary}" />
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource RootEntryButton}"
+                      Command="{Binding UseRootCommand}"
+                      Selector.IsSelected="{Binding RootMode, Converter={StaticResource StrEq}, ConverterParameter=root, Mode=OneWay}"
+                      AutomationProperties.Name="根目录">
+                <StackPanel>
+                  <TextBlock Text="根目录" FontSize="14" TextWrapping="Wrap"
+                             Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                  <TextBlock Text="/system · /system_ext" FontSize="11" Margin="0,2,0,0" TextWrapping="Wrap"
+                             Foreground="{DynamicResource Brush.TextSecondary}" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </Border>
+
+          <!-- 文件区 -->
+          <DockPanel Grid.Column="2">
+            <!-- 面包屑 -->
+            <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Breadcrumbs}"
+                          Margin="0,0,0,8" MinHeight="24">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel Orientation="Horizontal" VerticalAlignment="Center" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="/" Margin="0,0,4,0" FontSize="12"
+                               Foreground="{DynamicResource Brush.TextSecondary}"
+                               Visibility="{Binding ShowSeparator, Converter={StaticResource BoolToVis}}" />
+                    <Button Content="{Binding DisplayName}"
+                            Command="{Binding DataContext.GoBreadcrumbCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding Path}">
+                      <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource Button.Ghost}">
+                          <Setter Property="MinHeight" Value="20" />
+                          <Setter Property="Padding" Value="0" />
+                          <Setter Property="FontSize" Value="12" />
+                          <Setter Property="Foreground" Value="{DynamicResource Brush.AccentText}" />
+                          <Setter Property="Visibility" Value="Visible" />
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                              <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Button.Style>
+                    </Button>
+                    <TextBlock Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold"
+                               Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center">
+                      <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                          <Setter Property="Visibility" Value="Collapsed" />
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                              <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- 文件列表 -->
+            <Border Background="{DynamicResource Brush.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                    CornerRadius="6" MinHeight="280">
+              <DockPanel>
+                <!-- 粘性表头 -->
+                <Border DockPanel.Dock="Top" Background="{DynamicResource Brush.Surface}"
+                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1"
+                        Padding="10,7">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="28" />
+                      <ColumnDefinition Width="6" />
+                      <ColumnDefinition Width="*" MinWidth="180" />
+                      <ColumnDefinition Width="8" />
+                      <ColumnDefinition Width="50" />
+                      <ColumnDefinition Width="4" />
+                      <ColumnDefinition Width="72" />
+                      <ColumnDefinition Width="4" />
+                      <ColumnDefinition Width="52" />
+                      <ColumnDefinition Width="4" />
+                      <ColumnDefinition Width="82" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="2" Text="名称" FontSize="12" FontWeight="Medium"
+                               Foreground="{DynamicResource Brush.TextSecondary}" />
+                    <TextBlock Grid.Column="4" Text="权限" FontSize="12" FontWeight="Medium"
+                               Foreground="{DynamicResource Brush.TextSecondary}" />
+                    <TextBlock Grid.Column="6" Text="模式" FontSize="12" FontWeight="Medium"
+                               Foreground="{DynamicResource Brush.TextSecondary}" />
+                    <TextBlock Grid.Column="8" Text="大小" FontSize="12" FontWeight="Medium"
+                               Foreground="{DynamicResource Brush.TextSecondary}" />
+                    <TextBlock Grid.Column="10" Text="修改" FontSize="12" FontWeight="Medium"
+                               Foreground="{DynamicResource Brush.TextSecondary}" />
+                  </Grid>
+                </Border>
+
+                <Grid>
+                  <ListBox x:Name="FileList"
+                           ItemsSource="{Binding Entries}"
+                           SelectedItem="{Binding FocusedEntry}"
+                           BorderThickness="0" Background="Transparent"
+                           ItemContainerStyle="{StaticResource FileRowItem}"
+                           VirtualizingPanel.IsVirtualizing="True"
+                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                           MouseDoubleClick="OnDoubleClick"
+                           PreviewMouseMove="OnListPreviewMouseMove"
+                           PreviewMouseLeftButtonDown="OnListPreviewMouseLeftButtonDown"
+                           PreviewMouseLeftButtonUp="OnListPreviewMouseLeftButtonUp"
+                           PreviewKeyDown="OnListPreviewKeyDown"
+                           ContextMenuOpening="OnContextMenuOpening">
+                    <ListBox.ContextMenu>
+                      <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="复制" Command="{Binding CopyCommand}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        <MenuItem Header="剪切" Command="{Binding CutCommand}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        <Separator />
+                        <MenuItem Header="导出到目录…" Command="{Binding ExportSelectionCommand}" />
+                        <Separator />
+                        <MenuItem Header="删除" Command="{Binding DeleteCommand}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  Foreground="{DynamicResource Brush.Danger}" />
+                      </ContextMenu>
+                    </ListBox.ContextMenu>
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <Grid TextElement.FontSize="12">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="6" />
+                            <ColumnDefinition Width="*" MinWidth="180" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="50" />
+                            <ColumnDefinition Width="4" />
+                            <ColumnDefinition Width="72" />
+                            <ColumnDefinition Width="4" />
+                            <ColumnDefinition Width="52" />
+                            <ColumnDefinition Width="4" />
+                            <ColumnDefinition Width="82" />
+                          </Grid.ColumnDefinitions>
+                          <CheckBox Grid.Column="0" Style="{StaticResource FileCheckBox}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    IsChecked="{Binding IsSelected, Mode=OneWay}"
+                                    IsEnabled="{Binding CanInteract}"
+                                    Click="OnCheckBoxClick"
+                                    AutomationProperties.Name="{Binding Name}" />
+                          <DockPanel Grid.Column="2" VerticalAlignment="Center" LastChildFill="True">
+                            <Border DockPanel.Dock="Left" CornerRadius="4" Padding="4,1" Margin="0,0,6,0"
+                                    Background="{DynamicResource Brush.Raised}" VerticalAlignment="Center">
+                              <TextBlock Text="{Binding TypeMark}" FontSize="10"
+                                         Foreground="{DynamicResource Brush.TextSecondary}" />
+                            </Border>
+                            <TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center"
+                                       ToolTip="{Binding AbsolutePath}" />
+                          </DockPanel>
+                          <Border Grid.Column="4" Style="{StaticResource AccessTag}" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding AccessLabel}" Style="{StaticResource AccessTagText}" />
+                          </Border>
+                          <TextBlock Grid.Column="6" Text="{Binding ModeText}" FontSize="11"
+                                     FontFamily="{StaticResource Font.Mono}"
+                                     VerticalAlignment="Center"
+                                     Foreground="{DynamicResource Brush.TextSecondary}" />
+                          <TextBlock Grid.Column="8" Text="{Binding SizeText}" FontSize="12"
+                                     VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="10" Text="{Binding ModifiedText}" FontSize="12"
+                                     VerticalAlignment="Center"
+                                     Foreground="{DynamicResource Brush.TextSecondary}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+
+                  <!-- 空目录 / 离线提示 -->
+                  <TextBlock Text="{Binding EmptyHint}" FontSize="12"
+                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                             Foreground="{DynamicResource Brush.TextSecondary}"
+                             Visibility="{Binding ShowEmptyHint, Converter={StaticResource BoolToVis}}" />
+                </Grid>
+              </DockPanel>
+            </Border>
+          </DockPanel>
+        </Grid>
       </DockPanel>
-    </Grid>
+    </ScrollViewer>
   </DockPanel>
+  </Grid>
 </UserControl>

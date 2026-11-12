@@ -1,0 +1,33 @@
+<Window x:Class="TestEngineer.Desktop.Views.DragOutProgressWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="正在拖出"
+        Icon="pack://application:,,,/Assets/AppIcon.png"
+        Width="420" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Background="{DynamicResource Brush.Surface}"
+        FontFamily="{DynamicResource Font.Ui}">
+  <StackPanel Margin="20,18,20,16">
+    <TextBlock x:Name="TitleText" Text="正在从设备拖出" FontSize="15" FontWeight="SemiBold"
+               Foreground="{DynamicResource Brush.Text}" TextWrapping="Wrap" />
+    <TextBlock x:Name="DetailText" Margin="0,8,0,0" FontSize="12"
+               FontFamily="{DynamicResource Font.Mono}"
+               Foreground="{DynamicResource Brush.TextSecondary}"
+               Text="正在读取…" TextWrapping="Wrap" />
+    <ProgressBar x:Name="Bar" Margin="0,16,0,0" Height="6" Minimum="0" Maximum="100"
+                 Style="{StaticResource ProgressBar.Meter}"
+                 IsIndeterminate="True"
+                 Foreground="{DynamicResource Brush.Accent}" />
+    <StackPanel Margin="0,16,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+      <Button Content="隐藏" Margin="0,0,8,0" MinWidth="72"
+              Style="{StaticResource Button.Secondary}"
+              Click="OnHideClick" AutomationProperties.Name="隐藏拖出进度" />
+      <Button x:Name="CancelButton" Content="取消" MinWidth="72"
+              Style="{StaticResource Button.Secondary}"
+              Click="OnCancelClick" AutomationProperties.Name="取消拖出" />
+    </StackPanel>
+  </StackPanel>
+</Window>

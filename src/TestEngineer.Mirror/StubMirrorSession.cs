@@ -11,7 +11,13 @@ public sealed class StubMirrorSession : IMirrorSession
 
     public string? LastError { get; private set; }
 
+    public MirrorVideoSize? VideoSize => null;
+
     public event EventHandler? StateChanged;
+
+#pragma warning disable CS0067 // 占位实现不触发视频尺寸事件
+    public event EventHandler<MirrorVideoSize>? VideoSizeChanged;
+#pragma warning restore CS0067
 
     public Task StartAsync(AndroidDevice device, MirrorOptions? options = null, CancellationToken cancellationToken = default)
     {
@@ -27,6 +33,12 @@ public sealed class StubMirrorSession : IMirrorSession
         LastError = null;
         StateChanged?.Invoke(this, EventArgs.Empty);
         return Task.CompletedTask;
+    }
+
+    public void ForceStop()
+    {
+        State = MirrorSessionState.Stopped;
+        LastError = null;
     }
 
     public Task SendKeyAsync(string keycode, CancellationToken cancellationToken = default) => Task.CompletedTask;

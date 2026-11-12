@@ -110,6 +110,83 @@ public sealed class ToolLocator : IToolLocator
         return FindOnPath("scrcpy.exe");
     }
 
+    public string? FindApksigner()
+    {
+        foreach (var variable in new[] { "ANDROID_HOME", "ANDROID_SDK_ROOT" })
+        {
+            var found = FindInSdk(_getEnvironmentVariable(variable));
+            if (found is not null)
+            {
+                return found;
+            }
+        }
+
+        foreach (var directory in _fallbackDirectories)
+        {
+            var found = FindInSdk(SdkRootFrom(directory));
+            if (found is not null)
+            {
+                return found;
+            }
+        }
+
+        return FindOnPath("apksigner.bat")?.FullPath;
+    }
+
+    private static string SdkRootFrom(string directory)
+    {
+        var full = Path.GetFullPath(directory);
+        var name = Path.GetFileName(full.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        if (name.Equals("platform-tools", StringComparison.OrdinalIgnoreCase)
+            || name.Equals("build-tools", StringComparison.OrdinalIgnoreCase))
+        {
+            return Path.GetDirectoryName(full) ?? full;
+        }
+
+        return full;
+    }
+
+    private static string? FindInSdk(string? sdk)
+    {
+        if (string.IsNullOrWhiteSpace(sdk))
+        {
+            return null;
+        }
+
+        var buildTools = Path.Combine(sdk, "build-tools");
+        if (!Directory.Exists(buildTools))
+        {
+            return null;
+        }
+
+        string? bestPath = null;
+        Version? bestVersion = null;
+        try
+        {
+            foreach (var dir in Directory.EnumerateDirectories(buildTools))
+            {
+                var bat = Path.Combine(dir, "apksigner.bat");
+                if (!File.Exists(bat))
+                {
+                    continue;
+                }
+
+                Version.TryParse(Path.GetFileName(dir), out var version);
+                if (bestPath is null || (version is not null && (bestVersion is null || version > bestVersion)))
+                {
+                    bestPath = bat;
+                    bestVersion = version;
+                }
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return bestPath;
+        }
+
+        return bestPath;
+    }
+
     private static bool IsFile(string? path) => !string.IsNullOrWhiteSpace(path) && File.Exists(path);
 
     private IEnumerable<string> EnumerateThirdPartyRoots()

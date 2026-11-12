@@ -213,6 +213,48 @@ public static partial class WmParser
 
         return overridden ?? physical;
     }
+
+    /// <summary>
+    /// 解析当前旋转（0/1/2/3，对应 0°/90°/180°/270°）。
+    /// 兼容 dumpsys display / window 与 SurfaceOrientation。
+    /// </summary>
+    public static int? ParseRotation(string? output)
+    {
+        if (string.IsNullOrWhiteSpace(output))
+        {
+            return null;
+        }
+
+        foreach (Match match in RotationRegex().Matches(output))
+        {
+            var raw = match.Groups["r"].Value;
+            if (int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n)
+                && n is >= 0 and <= 3)
+            {
+                return n;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 按旋转得到「当前画面」宽高：90°/270° 时交换 Physical/Override 尺寸。
+    /// </summary>
+    public static (int Width, int Height)? ApplyRotation((int Width, int Height) size, int? rotation)
+    {
+        if (rotation is 1 or 3)
+        {
+            return (size.Height, size.Width);
+        }
+
+        return size;
+    }
+
+    [GeneratedRegex(
+        @"(?:mCurrentRotation|mDisplayRotation|mRotation|SurfaceOrientation|displayRotation)\s*[=:]\s*(?:ROTATION_)?(?<r>[0-3])",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex RotationRegex();
 }
 
 public sealed record CpuInfo(string? Model, int Cores);
@@ -415,7 +457,11 @@ public static class PackageListParser
                 continue;
             }
 
-            packages.Add(new AppPackage(body[(separator + 1)..], body[..separator], isSystem));
+            var apkPath = body[..separator];
+            var packageName = body[(separator + 1)..];
+            // 路径在系统分区 / priv-app 的，即使曾以「第三方」渠道安装，也视为系统应用
+            var system = isSystem || AppPackage.IsSystemApkPath(apkPath);
+            packages.Add(new AppPackage(packageName, apkPath, system));
         }
 
         return packages;

@@ -343,8 +343,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[11.0.0, )",
-          "TestEngineer.Core": "[1.0.0, )",
-          "TestEngineer.Infrastructure": "[1.0.0, )"
+          "TestEngineer.Core": "[0.4.2, )",
+          "TestEngineer.Infrastructure": "[0.4.2, )"
         }
       },
       "testengineer.core": {
@@ -354,22 +354,34 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[11.0.0, )",
-          "TestEngineer.Core": "[1.0.0, )"
+          "TestEngineer.Core": "[0.4.2, )"
         }
       },
       "testengineer.mirror": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[11.0.0, )",
-          "TestEngineer.Core": "[1.0.0, )",
-          "TestEngineer.Infrastructure": "[1.0.0, )"
+          "TestEngineer.Core": "[0.4.2, )",
+          "TestEngineer.Infrastructure": "[0.4.2, )"
         }
       },
       "testengineer.ui": {
         "type": "Project",
         "dependencies": {
-          "TestEngineer.Core": "[1.0.0, )"
+          "TestEngineer.Core": "[0.4.2, )"
         }
+      }
+    },
+    "net10.0-windows7.0/win-x64": {
+      "System.Diagnostics.EventLog": {
+        "type": "Transitive",
+        "resolved": "11.0.0",
+        "contentHash": "lKore9DXE1q8o6ss6/M7++xBpn2FMS0axaAypBspYLqY5OT1ZRPLzFGwF18l61aXfXTPpwkx5tYh4zMUHoAv/g=="
+      },
+      "System.Text.Encodings.Web": {
+        "type": "Transitive",
+        "resolved": "11.0.0",
+        "contentHash": "yNdu/KHBHq1rCu0d6TwKWNL1SvomZB4c/S0l4XKF1PX0gOIlPfnGVeBg7sQ3dmgy5e3UA+JGidak3abyBdlYAQ=="
       }
     }
   }

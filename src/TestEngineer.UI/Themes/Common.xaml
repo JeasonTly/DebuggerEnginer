@@ -21,16 +21,28 @@
   <Geometry x:Key="Icon.Nav.Debug">M8,8 A4,4 0 0 1 16,8 V14 A4,4 0 0 1 8,14 Z M12,10 V18 M4,10 H8 M16,10 H20 M4,16 H8 M16,16 H20</Geometry>
   <Geometry x:Key="Icon.Nav.Console">M4,5 H20 V19 H4 Z M7,10 L10,12.5 L7,15 M12,15 H17</Geometry>
   <Geometry x:Key="Icon.Nav.Cast">M3,8 V6 A1,1 0 0 1 4,5 H20 A1,1 0 0 1 21,6 V18 A1,1 0 0 1 20,19 H14 M3,12 A7,7 0 0 1 10,19 M3,16 A3,3 0 0 1 6,19</Geometry>
+  <Geometry x:Key="Icon.Nav.Developer">M4,7 H20 M4,12 H20 M4,17 H20 M8,5 V9 M15,10 V14 M11,15 V19</Geometry>
+  <!-- 定位针：圆头 + 尖底，表示 GNSS/定位日志 -->
+  <Geometry x:Key="Icon.Nav.Nmea">M12,21 C12,21 5,13.5 5,10 A7,7 0 1 1 19,10 C19,13.5 12,21 12,21 Z M12,7.5 A2.5,2.5 0 1 0 12,12.5 A2.5,2.5 0 1 0 12,7.5 Z</Geometry>
+  <Geometry x:Key="Icon.Dev.Image">M4,5 H20 V19 H4 Z M4,15 L8,11 L12,15 L15,12 L20,16 M9,9 H9.01</Geometry>
+  <Geometry x:Key="Icon.Dev.Package">M5,4 H13 L19,10 V20 H5 Z M13,4 V10 H19 M8,14 H16 M8,17 H13</Geometry>
+  <Geometry x:Key="Icon.Dev.Analyze">M11,11 m-6,0 a6,6 0 1 0 12,0 a6,6 0 1 0 -12,0 M15.5,15.5 L20,20</Geometry>
+  <Geometry x:Key="Icon.Dev.Sign">M14,4 L20,10 L9,21 H3 V15 Z M12,6 L18,12</Geometry>
   <Geometry x:Key="Icon.Nav.About">M12,3 A9,9 0 1 0 12,21 A9,9 0 1 0 12,3 Z M12,11 V16 M12,8 H12.01</Geometry>
-  <Geometry x:Key="Icon.Nav.Collapse">M15,6 L9,12 L15,18 M5,5 V19</Geometry>
-  <Geometry x:Key="Icon.Nav.Expand">M9,6 L15,12 L9,18 M19,5 V19</Geometry>
+  <!-- 原型：折叠/展开均为三横杠（hamburger），不用 chevron -->
+  <Geometry x:Key="Icon.Nav.Collapse">M4,7 H20 M4,12 H20 M4,17 H20</Geometry>
+  <Geometry x:Key="Icon.Nav.Expand">M4,7 H20 M4,12 H20 M4,17 H20</Geometry>
+  <Geometry x:Key="Icon.Nav.Menu">M4,7 H20 M4,12 H20 M4,17 H20</Geometry>
 
-  <Geometry x:Key="Icon.Action.Launch">M8,5 L19,12 L8,19 Z</Geometry>
-  <Geometry x:Key="Icon.Action.ClearData">M4,20 H20 M6,16 L14,7 A2,2 0 0 1 17,7 L18,8 A2,2 0 0 1 18,11 L12,18 H8 Z</Geometry>
-  <Geometry x:Key="Icon.Action.Grant">M8,15 A4,4 0 1 0 8.01,15 M11,12 L20,3 M17,6 L19,8 M14,9 L16,11</Geometry>
-  <Geometry x:Key="Icon.Action.Uninstall">M5,7 H19 M10,7 V4 H14 V7 M7,7 L8,20 H16 L17,7 M10,11 V16 M14,11 V16</Geometry>
+  <!-- 与 docs/ui-ux-v1-prototype.html 符号对齐：i-play / i-broom / i-key / i-trash -->
+  <Geometry x:Key="Icon.Action.Launch">M7,4 L20,12 L7,20 Z</Geometry>
+  <Geometry x:Key="Icon.Action.ForceStop">M8,7 H16 A1,1 0 0 1 17,8 V16 A1,1 0 0 1 16,17 H8 A1,1 0 0 1 7,16 V8 A1,1 0 0 1 8,7 Z</Geometry>
+  <!-- 清数据＝扫帚：斜柄 + 扫头脊线 + 刷毛（描边可读，避免实心楔形糊成一团） -->
+  <Geometry x:Key="Icon.Action.ClearData">M19,4 L11.5,14.5 M6.5,13 L15.5,18 M5,14.5 L3.5,20.5 M8,15.5 L7,21 M10.5,16.5 L10.5,22 M13,17.5 L14,22 M15.5,18.5 L17.5,21.5</Geometry>
+  <Geometry x:Key="Icon.Action.Grant">M5,14 A3,3 0 1 0 11,14 A3,3 0 1 0 5,14 M11,14 H20 V17 H18 V16 H16 V17 H14</Geometry>
+  <Geometry x:Key="Icon.Action.Uninstall">M4,7 H20 M9,7 V5 H15 V7 M7,7 L8,20 H16 L17,7</Geometry>
 
-  <Geometry x:Key="Icon.Mirror.Play">M8,5 L19,12 L8,19 Z</Geometry>
+  <Geometry x:Key="Icon.Mirror.Play">M7,4 L20,12 L7,20 Z</Geometry>
   <Geometry x:Key="Icon.Mirror.Stop">M7,7 H17 V17 H7 Z</Geometry>
   <Geometry x:Key="Icon.Mirror.Back">M15,6 L9,12 L15,18 M9,12 H19</Geometry>
   <Geometry x:Key="Icon.Mirror.Home">M4,11 L12,4 L20,11 V19 A1,1 0 0 1 19,20 H5 A1,1 0 0 1 4,19 Z M10,20 V14 H14 V20</Geometry>
@@ -38,6 +50,15 @@
   <Geometry x:Key="Icon.Mirror.Power">M12,4 V12 M7.5,6.5 A6,6 0 1 0 16.5,6.5</Geometry>
   <Geometry x:Key="Icon.Mirror.Screenshot">M4,8 H8 L10,5 H14 L16,8 H20 V19 H4 Z M12,17 A3,3 0 1 0 12,11 A3,3 0 1 0 12,17 Z</Geometry>
   <Geometry x:Key="Icon.Mirror.Record">M12,12 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0 M12,12 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0</Geometry>
+  <!-- 全屏：外框 + 四角箭头；退出全屏：内收箭头 -->
+  <Geometry x:Key="Icon.Mirror.Fullscreen">M4,9 V4 H9 M15,4 H20 V9 M20,15 V20 H15 M9,20 H4 V15</Geometry>
+  <Geometry x:Key="Icon.Mirror.FullscreenExit">M9,4 V9 H4 M20,9 H15 V4 M15,20 V15 H20 M4,15 H9 V20</Geometry>
+  <Geometry x:Key="Icon.Mirror.VolumeDown">M4,10 H8 L13,6 V18 L8,14 H4 Z M16,12 H21</Geometry>
+  <Geometry x:Key="Icon.Mirror.VolumeUp">M4,10 H8 L13,6 V18 L8,14 H4 Z M16,12 H22 M19,9 V15</Geometry>
+  <Geometry x:Key="Icon.Mirror.Up">M12,18 V6 M7,11 L12,6 L17,11</Geometry>
+  <Geometry x:Key="Icon.Mirror.Down">M12,6 V18 M7,13 L12,18 L17,13</Geometry>
+  <Geometry x:Key="Icon.Mirror.Left">M18,12 H6 M11,7 L6,12 L11,17</Geometry>
+  <Geometry x:Key="Icon.Mirror.Right">M6,12 H18 M13,7 L18,12 L13,17</Geometry>
   <Geometry x:Key="Icon.Device.Refresh">M20,12 A8,8 0 1 1 17.5,6.5 M20,4 V9 H15</Geometry>
 
   <!-- ================= 共享按钮样式（高 32、圆角 6、内边距 6×12） ================= -->
@@ -129,18 +150,38 @@
     </Style.Triggers>
   </Style>
 
-  <!-- 32×32 图标按钮：Content 放 Path，Path 描边绑定到按钮前景色。 -->
-  <Style x:Key="Button.Icon" TargetType="Button" BasedOn="{StaticResource Button.Ghost}">
+  <!-- 32×32 圆角方底图标钮（对齐原型 .btn.icon：Raised 底 + 边框 + 次要色字形） -->
+  <Style x:Key="Button.Icon" TargetType="Button" BasedOn="{StaticResource Button.Secondary}">
     <Setter Property="Width" Value="32" />
     <Setter Property="Height" Value="32" />
+    <Setter Property="MinWidth" Value="32" />
     <Setter Property="MinHeight" Value="32" />
     <Setter Property="Padding" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+      </Trigger>
+      <Trigger Property="IsKeyboardFocused" Value="True">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+        <Setter Property="BorderThickness" Value="2" />
+      </Trigger>
+      <Trigger Property="IsEnabled" Value="False">
+        <Setter Property="Opacity" Value="0.45" />
+        <Setter Property="Cursor" Value="Arrow" />
+      </Trigger>
+    </Style.Triggers>
   </Style>
 
   <Style x:Key="Button.IconDanger" TargetType="Button" BasedOn="{StaticResource Button.Icon}">
     <Style.Triggers>
       <Trigger Property="IsMouseOver" Value="True">
         <Setter Property="Background" Value="{DynamicResource Brush.DangerBg}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Danger}" />
       </Trigger>
     </Style.Triggers>
@@ -160,6 +201,27 @@
     <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
     <Setter Property="FontSize" Value="12" />
     <Setter Property="Padding" Value="12,4" />
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{DynamicResource Brush.Raised}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+      </Trigger>
+      <Trigger Property="Selector.IsSelected" Value="True">
+        <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.AccentText}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <!-- 调试分类轨：整行、Surface 底、当前类 AccentMuted + AccentText。 -->
+  <Style x:Key="Button.Category" TargetType="Button" BasedOn="{StaticResource Button.Secondary}">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Padding" Value="10,8" />
+    <Setter Property="Margin" Value="0,0,0,4" />
     <Style.Triggers>
       <Trigger Property="IsMouseOver" Value="True">
         <Setter Property="Background" Value="{DynamicResource Brush.Raised}" />
@@ -214,11 +276,37 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ProgressBar">
-          <Grid>
+          <Grid ClipToBounds="True">
             <Border Background="{DynamicResource Brush.Raised}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="3" />
             <Border x:Name="PART_Track" />
-            <Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{DynamicResource Brush.Accent}" CornerRadius="3" />
+            <Border x:Name="PART_Indicator" HorizontalAlignment="Left" VerticalAlignment="Stretch"
+                    Background="{DynamicResource Brush.Accent}" CornerRadius="3" />
+            <Border x:Name="IndeterminateBar" Width="96" HorizontalAlignment="Left" VerticalAlignment="Stretch"
+                    Visibility="Collapsed" Background="{DynamicResource Brush.Accent}" CornerRadius="3"
+                    RenderTransformOrigin="0,0">
+              <Border.RenderTransform>
+                <TranslateTransform x:Name="IndeterminateShift" X="-96" />
+              </Border.RenderTransform>
+            </Border>
           </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsIndeterminate" Value="True">
+              <Setter TargetName="PART_Indicator" Property="Opacity" Value="0" />
+              <Setter TargetName="IndeterminateBar" Property="Visibility" Value="Visible" />
+              <Trigger.EnterActions>
+                <BeginStoryboard x:Name="IndeterminateStory">
+                  <Storyboard RepeatBehavior="Forever">
+                    <DoubleAnimation Storyboard.TargetName="IndeterminateShift"
+                                     Storyboard.TargetProperty="X"
+                                     From="-96" To="1200" Duration="0:0:1.4" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.EnterActions>
+              <Trigger.ExitActions>
+                <StopStoryboard BeginStoryboardName="IndeterminateStory" />
+              </Trigger.ExitActions>
+            </Trigger>
+          </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>
     </Setter>

@@ -60,6 +60,32 @@ public sealed class ConsoleHistoryStore : IConsoleHistory
         }
     }
 
+    public bool Remove(string commandLine)
+    {
+        var line = Sanitize(commandLine);
+        if (line.Length == 0)
+        {
+            return false;
+        }
+
+        lock (_gate)
+        {
+            for (var i = _items.Count - 1; i >= 0; i--)
+            {
+                if (_items[i] != line)
+                {
+                    continue;
+                }
+
+                _items.RemoveAt(i);
+                Rewrite();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void Clear()
     {
         lock (_gate)

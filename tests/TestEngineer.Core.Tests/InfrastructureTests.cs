@@ -118,12 +118,13 @@ public sealed class SettingsRoundtripTests : TempDirectoryTestBase
     public void Load_TolerantOfMissingFieldsAndNullToolPaths()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
-        File.WriteAllText(SettingsPath, """{ "theme": "dark", "toolPaths": null }""");
+        File.WriteAllText(SettingsPath, """{ "theme": "dark", "toolPaths": null, "signingProfiles": null }""");
 
         var settings = new JsonSettingsStore(SettingsPath).Load();
 
         Assert.Equal(AppThemeMode.Dark, settings.Theme);
         Assert.NotNull(settings.ToolPaths);
+        Assert.NotNull(settings.SigningProfiles);
         Assert.Equal(1024, settings.MirrorWidth);
         Assert.Equal(1, settings.Version);
     }
@@ -258,6 +259,26 @@ public sealed class ToolLocatorTests : TempDirectoryTestBase
 
         Assert.Equal(exe, found?.FullPath);
         Assert.Equal(ToolSource.Bundled, found?.Source);
+    }
+
+    [Fact]
+    public void Apksigner_PicksHighestBuildToolsThenFallbackSibling()
+    {
+        var sdk = Path.Combine(Root, "sdk");
+        Touch(Path.Combine(sdk, "build-tools", "30.0.0", "apksigner.bat"));
+        Touch(Path.Combine(sdk, "build-tools", "37.0.0", "apksigner.bat"));
+        Touch(Path.Combine(sdk, "build-tools", "34.0.0", "apksigner.bat"));
+
+        Assert.Equal(
+            Path.Combine(sdk, "build-tools", "37.0.0", "apksigner.bat"),
+            Locator(sdk: sdk).FindApksigner());
+
+        var platformTools = Path.Combine(Root, "fallback-sdk", "platform-tools");
+        Directory.CreateDirectory(platformTools);
+        var fallbackBat = Path.Combine(Root, "fallback-sdk", "build-tools", "34.0.0", "apksigner.bat");
+        Touch(fallbackBat);
+
+        Assert.Equal(fallbackBat, Locator(fallback: [platformTools]).FindApksigner());
     }
 
     [Fact]

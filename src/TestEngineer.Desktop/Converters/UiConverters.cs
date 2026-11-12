@@ -16,6 +16,16 @@ public sealed class NavWidthConverter : IValueConverter
         => Binding.DoNothing;
 }
 
+/// <summary>true → Collapsed，false → Visible（投屏全屏时隐藏导航/工作区）。</summary>
+public sealed class InverseBoolToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        => value is true ? Visibility.Collapsed : Visibility.Visible;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => value is Visibility.Collapsed;
+}
+
 public sealed class NavToggleTextConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -35,13 +45,13 @@ public sealed class NavLabelVisibilityConverter : IValueConverter
         => Binding.DoNothing;
 }
 
-/// <summary>当前页 ViewModel 类型名以参数开头时为 true（如 DevicePageViewModel / "Device"）。</summary>
+/// <summary>当前页类型名等于「参数 + Page」前缀时为 true（Device 不会误中 Developer）。</summary>
 public sealed class PageActiveConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         => value is not null
            && parameter is string key
-           && value.GetType().Name.StartsWith(key, StringComparison.Ordinal);
+           && value.GetType().Name.StartsWith(key + "Page", StringComparison.Ordinal);
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => Binding.DoNothing;

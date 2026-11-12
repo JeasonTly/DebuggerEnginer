@@ -21,7 +21,7 @@ public interface IAdbProcessRunner
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>定位外部工具（adb、scrcpy）。</summary>
+/// <summary>定位外部工具（adb、scrcpy、apksigner）。</summary>
 public interface IToolLocator
 {
     /// <summary>找到 adb.exe 的完整路径；未找到返回 null。</summary>
@@ -29,6 +29,9 @@ public interface IToolLocator
 
     /// <summary>找到 scrcpy.exe 的完整路径；未找到返回 null。</summary>
     string? FindScrcpy();
+
+    /// <summary>找到 apksigner.bat 的完整路径；未找到返回 null。</summary>
+    string? FindApksigner();
 }
 
 /// <summary>设备列表变化通知参数。</summary>

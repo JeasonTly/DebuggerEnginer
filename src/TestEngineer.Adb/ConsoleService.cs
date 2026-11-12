@@ -130,8 +130,11 @@ public static class ConsoleCommandLine
 /// </summary>
 public sealed class ConsoleService : IConsoleService
 {
-    /// <summary>控制台命令默认超时；长时间流式命令（如 logcat）请用取消结束。</summary>
+    /// <summary>普通命令默认超时。</summary>
     public static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(2);
+
+    /// <summary>流式 logcat（无 -d/-c）不设超时，靠「中止」结束。</summary>
+    public static readonly TimeSpan StreamingTimeout = Timeout.InfiniteTimeSpan;
 
     private readonly IAdbProcessRunner _runner;
     private readonly IConsoleHistory? _history;
@@ -161,6 +164,7 @@ public sealed class ConsoleService : IConsoleService
             return AdbCommandResult.Failure(ex.Message, exitCode: 2);
         }
 
+        // 历史仍由服务记录；UI 的 Remember 会再读 Items，相邻重复由 HistoryStore 合并
         _history?.Add(commandLine);
 
         var serial = parsed.Serial ?? (parsed.NeedsDevice ? boundSerial : null);
@@ -171,8 +175,53 @@ public sealed class ConsoleService : IConsoleService
             return failure;
         }
 
-        var result = await _runner.RunAsync(parsed.AdbArguments, serial, DefaultTimeout, onOutput, onOutput, cancellationToken).ConfigureAwait(false);
+        var timeout = IsStreamingLogcat(parsed.AdbArguments) ? StreamingTimeout : DefaultTimeout;
+        var result = await _runner.RunAsync(
+                parsed.AdbArguments,
+                serial,
+                timeout,
+                onOutput,
+                onOutput,
+                cancellationToken)
+            .ConfigureAwait(false);
         CommandCompleted?.Invoke(this, new ConsoleCommandCompletedEventArgs(commandLine, serial, result));
         return result;
+    }
+
+    /// <summary>logcat 且未带 -d/-c：持续输出，需中止。</summary>
+    internal static bool IsStreamingLogcat(IReadOnlyList<string> args)
+    {
+        if (args.Count == 0)
+        {
+            return false;
+        }
+
+        var head = args[0];
+        if (!head.Equals("logcat", StringComparison.OrdinalIgnoreCase)
+            && !(args.Count >= 2
+                 && head.Equals("shell", StringComparison.OrdinalIgnoreCase)
+                 && args[1].Contains("logcat", StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        foreach (var a in args)
+        {
+            if (a.Equals("-d", StringComparison.Ordinal) || a.Equals("-c", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            // shell "logcat -d …" 整段在一个参数里
+            if (a.Contains("logcat", StringComparison.OrdinalIgnoreCase)
+                && (a.Contains(" -d", StringComparison.Ordinal) || a.StartsWith("logcat -d", StringComparison.Ordinal)
+                    || a.Contains("\t-d", StringComparison.Ordinal)))
+            {
+                return false;
+            }
+        }
+
+        return head.Equals("logcat", StringComparison.OrdinalIgnoreCase)
+               || args.Any(a => a.Contains("logcat", StringComparison.OrdinalIgnoreCase));
     }
 }

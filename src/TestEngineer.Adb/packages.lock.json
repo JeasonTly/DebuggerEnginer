@@ -29,9 +29,10 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[11.0.0, )",
-          "TestEngineer.Core": "[1.0.0, )"
+          "TestEngineer.Core": "[0.4.2, )"
         }
       }
-    }
+    },
+    "net10.0/win-x64": {}
   }
 }

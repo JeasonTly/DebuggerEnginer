@@ -105,6 +105,7 @@ public sealed class JsonSettingsStore : ISettingsStore
 
         // JSON 中显式写 null 时补默认对象，调用方无需判空。
         settings.ToolPaths ??= new ToolPathSettings();
+        settings.SigningProfiles ??= [];
         return settings;
     }
 }
