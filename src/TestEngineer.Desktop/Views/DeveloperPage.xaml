@@ -15,9 +15,48 @@
       <Setter Property="FontSize" Value="12" />
       <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
+    <!-- 自绘只读框：WPF-UI 的 TextBox 聚焦会刷白底；TextBlock 不能选中复制。 -->
+    <Style x:Key="AnalyzeLineBox" TargetType="TextBox">
+      <Setter Property="IsReadOnly" Value="True" />
+      <Setter Property="IsReadOnlyCaretVisible" Value="True" />
+      <Setter Property="IsTabStop" Value="False" />
+      <Setter Property="Focusable" Value="True" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+      <Setter Property="CaretBrush" Value="{DynamicResource Brush.Text}" />
+      <Setter Property="SelectionBrush" Value="{DynamicResource Brush.AccentMuted}" />
+      <Setter Property="SelectionTextBrush" Value="{DynamicResource Brush.Text}" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,1,12,3" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="AcceptsReturn" Value="True" />
+      <Setter Property="Cursor" Value="IBeam" />
+      <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TextBox">
+            <ScrollViewer x:Name="PART_ContentHost"
+                          Focusable="False"
+                          Background="Transparent"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Disabled" />
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <DataTemplate x:Key="AnalyzeLine">
-      <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" Margin="0,1,12,3"
-                 Foreground="{DynamicResource Brush.Text}" />
+      <TextBox Style="{StaticResource AnalyzeLineBox}" Text="{Binding Mode=OneWay}">
+        <TextBox.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="复制" Command="ApplicationCommands.Copy"
+                      CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+            <MenuItem Header="全选" Command="ApplicationCommands.SelectAll"
+                      CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+          </ContextMenu>
+        </TextBox.ContextMenu>
+      </TextBox>
     </DataTemplate>
     <Style x:Key="AnalyzeGroup" TargetType="Expander">
       <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
@@ -363,9 +402,16 @@
                       Command="{Binding AnalyzeCommand}"
                       AutomationProperties.Name="分析应用" />
             </Grid>
-            <TextBlock Margin="0,0,0,8" FontSize="12" TextWrapping="Wrap"
-                       Foreground="{DynamicResource Brush.TextSecondary}"
-                       Text="{Binding AnalyzeStatus}" />
+            <DockPanel Margin="0,0,0,8" LastChildFill="True">
+              <Button DockPanel.Dock="Right" Content="复制" MinWidth="72" Margin="12,0,0,0"
+                      VerticalAlignment="Center" Style="{StaticResource Button.Secondary}"
+                      Command="{Binding CopyAnalyzeCommand}"
+                      Visibility="{Binding HasAnalyzeResult, Converter={StaticResource BoolToVis}}"
+                      AutomationProperties.Name="复制分析结果" />
+              <TextBlock VerticalAlignment="Center" FontSize="12" TextWrapping="Wrap"
+                         Foreground="{DynamicResource Brush.TextSecondary}"
+                         Text="{Binding AnalyzeStatus}" />
+            </DockPanel>
             <ScrollViewer MinHeight="220" MaxHeight="520"
                           VerticalScrollBarVisibility="Visible"
                           HorizontalScrollBarVisibility="Disabled"

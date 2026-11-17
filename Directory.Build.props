@@ -10,7 +10,7 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <Company>TestEngineer</Company>
     <Product>TestEngineer</Product>
-    <Version>0.4.2</Version>
+    <Version>0.5.7</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 </Project>

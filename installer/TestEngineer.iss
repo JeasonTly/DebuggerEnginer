@@ -1,6 +1,6 @@
 ﻿; TestEngineer Inno Setup — 由 scripts/publish.ps1 在发布目录就绪后调用
 #define MyAppName "TestEngineer"
-#define MyAppVersion "0.4.2"
+#define MyAppVersion "0.5.7"
 #define MyAppPublisher "TestEngineer"
 #ifndef MyAppSource
   #define MyAppSource "..\artifacts\publish\TestEngineer-win-x64"

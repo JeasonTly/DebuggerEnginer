@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
@@ -155,6 +156,7 @@ public sealed partial class DeveloperPageViewModel : ObservableObject
         GeneratePresetCommand.NotifyCanExecuteChanged();
         BrowseAnalyzeApkCommand.NotifyCanExecuteChanged();
         AnalyzeCommand.NotifyCanExecuteChanged();
+        CopyAnalyzeCommand.NotifyCanExecuteChanged();
         BrowseSignApkCommand.NotifyCanExecuteChanged();
         BrowseSignKeystoreCommand.NotifyCanExecuteChanged();
         SignCommand.NotifyCanExecuteChanged();
@@ -676,6 +678,56 @@ public sealed partial class DeveloperPageViewModel : ObservableObject
         AnalyzeProviders.Clear();
         AnalyzePermissions.Clear();
         HasAnalyzeResult = false;
+    }
+
+    partial void OnHasAnalyzeResultChanged(bool value) => CopyAnalyzeCommand.NotifyCanExecuteChanged();
+
+    private bool CanCopyAnalyze() => HasAnalyzeResult && !IsBusy;
+
+    [RelayCommand(CanExecute = nameof(CanCopyAnalyze))]
+    private void CopyAnalyze()
+    {
+        var text = BuildAnalyzeText();
+        if (text.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            Clipboard.SetDataObject(text, copy: true);
+            AnalyzeStatus = "已复制分析结果";
+        }
+        catch (ExternalException)
+        {
+            AnalyzeStatus = "复制失败，剪贴板被占用";
+        }
+    }
+
+    private string BuildAnalyzeText()
+    {
+        var sb = new StringBuilder();
+        AppendSection(sb, "总览", AnalyzeOverviewLines);
+        AppendSection(sb, "主入口", AnalyzeMainEntries);
+        AppendSection(sb, AnalyzeActivitiesTitle, AnalyzeActivities);
+        AppendSection(sb, AnalyzeServicesTitle, AnalyzeServices);
+        AppendSection(sb, AnalyzeProvidersTitle, AnalyzeProviders);
+        AppendSection(sb, AnalyzePermissionsTitle, AnalyzePermissions);
+        return sb.ToString().TrimEnd();
+    }
+
+    private static void AppendSection(StringBuilder sb, string title, IEnumerable<string> lines)
+    {
+        if (sb.Length > 0)
+        {
+            sb.AppendLine();
+        }
+
+        sb.AppendLine(title);
+        foreach (var line in lines)
+        {
+            sb.AppendLine(line);
+        }
     }
 
     private static void ReplaceLines(ObservableCollection<string> target, IEnumerable<string> lines)
